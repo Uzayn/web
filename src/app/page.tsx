@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
@@ -7,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { StatsBar } from "@/components/features/stats-bar";
 import { EmailCaptureForm } from "@/components/features/email-capture-form";
 import { TestimonialCard } from "@/components/features/testimonial-card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Pick, Stats } from "@/types";
 import {
   TrendingUp,
   Shield,
@@ -19,62 +24,69 @@ import {
   BarChart3,
 } from "lucide-react";
 
+const testimonials = [
+  {
+    name: "Michael T.",
+    text: "Been a VIP member for 6 months. The analysis is top-notch and the transparency in track record builds real trust.",
+    rating: 5,
+    memberSince: "Aug 2024",
+  },
+  {
+    name: "Sarah K.",
+    text: "Finally found a picks service that shows their actual results. The ROI speaks for itself.",
+    rating: 5,
+    memberSince: "Oct 2024",
+  },
+  {
+    name: "James R.",
+    text: "The detailed analysis helps me understand the reasoning behind each pick. Worth every penny.",
+    rating: 5,
+    memberSince: "Sep 2024",
+  },
+];
+
 export default function HomePage() {
-  // These would come from API in production
-  const stats = {
-    totalPicks: 847,
-    winRate: 58,
-    roi: 12,
-    unitsProfit: 124.5,
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [recentPicks, setRecentPicks] = useState<Pick[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [statsRes, picksRes] = await Promise.all([
+          fetch("/api/stats"),
+          fetch("/api/picks"),
+        ]);
+
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData.overall || null);
+        }
+
+        if (picksRes.ok) {
+          const picksData = await picksRes.json();
+          // Get 3 most recent non-VIP picks for preview
+          const picks = (picksData.picks || [])
+            .filter((p: Pick) => !p.is_vip)
+            .slice(0, 3);
+          setRecentPicks(picks);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  const displayStats = stats || {
+    totalPicks: 0,
+    winRate: 0,
+    roi: 0,
+    unitsProfit: 0,
   };
-
-  const recentPicks = [
-    {
-      id: "1",
-      sport: "NBA",
-      matchup: "Lakers vs Celtics",
-      selection: "Lakers +4.5",
-      odds: 1.91,
-      result: "win",
-    },
-    {
-      id: "2",
-      sport: "NFL",
-      matchup: "Chiefs vs Bills",
-      selection: "Over 48.5",
-      odds: 1.87,
-      result: "win",
-    },
-    {
-      id: "3",
-      sport: "Soccer",
-      matchup: "Arsenal vs Chelsea",
-      selection: "Both Teams to Score",
-      odds: 1.72,
-      result: "pending",
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: "Michael T.",
-      text: "Been a VIP member for 6 months. The analysis is top-notch and the transparency in track record builds real trust.",
-      rating: 5,
-      memberSince: "Aug 2024",
-    },
-    {
-      name: "Sarah K.",
-      text: "Finally found a picks service that shows their actual results. The ROI speaks for itself.",
-      rating: 5,
-      memberSince: "Oct 2024",
-    },
-    {
-      name: "James R.",
-      text: "The detailed analysis helps me understand the reasoning behind each pick. Worth every penny.",
-      rating: 5,
-      memberSince: "Sep 2024",
-    },
-  ];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -86,7 +98,7 @@ export default function HomePage() {
           <div className="container mx-auto text-center max-w-4xl">
             <Badge variant="secondary" className="mb-4">
               <Trophy className="w-3 h-3 mr-1" />
-              {stats.winRate}% Win Rate This Season
+              {isLoading ? "..." : `${displayStats.winRate}%`} Win Rate This Season
             </Badge>
 
             <h1 className="text-4xl md:text-6xl font-bold text-text-primary mb-6">
@@ -114,7 +126,16 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <StatsBar {...stats} />
+            {isLoading ? (
+              <Skeleton className="h-24 w-full rounded-xl" />
+            ) : (
+              <StatsBar
+                totalPicks={displayStats.totalPicks}
+                winRate={displayStats.winRate}
+                roi={displayStats.roi}
+                unitsProfit={displayStats.unitsProfit}
+              />
+            )}
           </div>
         </section>
 
@@ -184,33 +205,47 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
-              {recentPicks.map((pick) => (
-                <Card key={pick.id} className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge variant="outline">{pick.sport}</Badge>
-                    <Badge
-                      variant={
-                        pick.result === "win"
-                          ? "success"
-                          : pick.result === "loss"
-                          ? "danger"
-                          : "default"
-                      }
-                    >
-                      {pick.result.charAt(0).toUpperCase() + pick.result.slice(1)}
-                    </Badge>
-                  </div>
-                  <h3 className="font-semibold text-text-primary mb-1">
-                    {pick.matchup}
-                  </h3>
-                  <p className="text-primary text-sm font-medium mb-2">
-                    {pick.selection}
-                  </p>
-                  <p className="text-xs text-text-muted">Odds: {pick.odds}</p>
-                </Card>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="grid md:grid-cols-3 gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-40 rounded-xl" />
+                ))}
+              </div>
+            ) : recentPicks.length > 0 ? (
+              <div className="grid md:grid-cols-3 gap-4">
+                {recentPicks.map((pick) => (
+                  <Card key={pick.id} className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Badge variant="outline">{pick.sport.toUpperCase()}</Badge>
+                      <Badge
+                        variant={
+                          pick.result === "win"
+                            ? "success"
+                            : pick.result === "loss"
+                            ? "danger"
+                            : "default"
+                        }
+                      >
+                        {pick.result.charAt(0).toUpperCase() + pick.result.slice(1)}
+                      </Badge>
+                    </div>
+                    <h3 className="font-semibold text-text-primary mb-1">
+                      {pick.matchup}
+                    </h3>
+                    <p className="text-primary text-sm font-medium mb-2">
+                      {pick.selection}
+                    </p>
+                    <p className="text-xs text-text-muted">Odds: {pick.odds}</p>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-8 text-center">
+                <p className="text-text-muted">
+                  No picks yet. Check back soon for expert predictions!
+                </p>
+              </Card>
+            )}
           </div>
         </section>
 
@@ -271,7 +306,9 @@ export default function HomePage() {
                 </Card>
                 <Card className="p-4 text-center">
                   <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
-                  <p className="font-semibold text-text-primary">+{stats.roi}%</p>
+                  <p className="font-semibold text-text-primary">
+                    {isLoading ? "..." : `+${displayStats.roi}%`}
+                  </p>
                   <p className="text-xs text-text-muted">Average ROI</p>
                 </Card>
               </div>

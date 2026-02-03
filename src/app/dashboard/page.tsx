@@ -8,70 +8,46 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PickCard } from "@/components/features/pick-card";
 import { StatsBar } from "@/components/features/stats-bar";
-import { Pick } from "@/types";
+import { Pick, Stats } from "@/types";
 import { Crown, Lock, ArrowRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
-// Mock VIP picks - would come from API
-const mockVipPicks: Pick[] = [
-  {
-    id: "v1",
-    sport: "nba",
-    league: "NBA",
-    matchup: "Warriors vs Suns",
-    selection: "Warriors -3.5",
-    odds: 1.95,
-    stake: 2,
-    confidence: "high",
-    analysis: "Warriors are 8-2 in their last 10 home games. Curry averaging 32 PPG.",
-    is_vip: true,
-    result: "pending",
-    profit_loss: null,
-    event_date: new Date(Date.now() + 86400000).toISOString(),
-    settled_at: null,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "v2",
-    sport: "nfl",
-    league: "NFL",
-    matchup: "Eagles vs Cowboys",
-    selection: "Eagles ML",
-    odds: 1.65,
-    stake: 2,
-    confidence: "high",
-    analysis: "Eagles dominant at home this season with 7-1 record.",
-    is_vip: true,
-    result: "pending",
-    profit_loss: null,
-    event_date: new Date(Date.now() + 172800000).toISOString(),
-    settled_at: null,
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "v3",
-    sport: "soccer",
-    league: "Premier League",
-    matchup: "Liverpool vs Man United",
-    selection: "Liverpool -1.5",
-    odds: 2.20,
-    stake: 1,
-    confidence: "medium",
-    analysis: "Liverpool unbeaten at Anfield this season, United struggling away.",
-    is_vip: true,
-    result: "pending",
-    profit_loss: null,
-    event_date: new Date(Date.now() + 259200000).toISOString(),
-    settled_at: null,
-    created_at: new Date().toISOString(),
-  },
-];
+async function getVipPicks(): Promise<Pick[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("picks")
+    .select("*")
+    .eq("is_vip", true)
+    .order("event_date", { ascending: false })
+    .limit(6);
+  return data || [];
+}
 
-const vipStats = {
-  totalPicks: 324,
-  winRate: 62,
-  roi: 18,
-  unitsProfit: 78.4,
-};
+async function getVipStats(): Promise<Stats> {
+  const supabase = await createClient();
+  const { data: picks } = await supabase
+    .from("picks")
+    .select("*")
+    .eq("is_vip", true);
+
+  const allPicks = picks || [];
+  const settledPicks = allPicks.filter((p) => p.result !== "pending");
+  const wins = settledPicks.filter((p) => p.result === "win").length;
+  const losses = settledPicks.filter((p) => p.result === "loss").length;
+  const pushes = settledPicks.filter((p) => p.result === "push").length;
+  const totalProfit = settledPicks.reduce((sum, p) => sum + (p.profit_loss || 0), 0);
+
+  return {
+    totalPicks: allPicks.length,
+    wins,
+    losses,
+    pushes,
+    pending: allPicks.filter((p) => p.result === "pending").length,
+    winRate: settledPicks.length > 0 ? Math.round((wins / (settledPicks.length - pushes)) * 100) : 0,
+    roi: settledPicks.length > 0 ? Math.round((totalProfit / settledPicks.length) * 100) : 0,
+    unitsProfit: totalProfit,
+  };
+}
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -81,9 +57,19 @@ export default async function DashboardPage() {
     redirect("/sign-in");
   }
 
-  // In production, check subscription status from database
-  // For now, mock as free user to show upgrade prompt
-  const isVip = false; // Would be: user.subscription_status === 'vip'
+  // Check subscription status from database
+  const supabase = await createClient();
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("subscription_status")
+    .eq("clerk_id", userId)
+    .single();
+
+  const isVip = dbUser?.subscription_status === "vip";
+
+  // Fetch VIP picks for teaser
+  const vipPicks = await getVipPicks();
+  const vipStats = await getVipStats();
 
   if (!isVip) {
     return (
@@ -123,12 +109,13 @@ export default async function DashboardPage() {
             </Card>
 
             {/* Teaser of what they're missing */}
+            {vipPicks.length > 0 && (
             <div className="mt-8">
               <h2 className="text-lg font-semibold text-text-primary mb-4">
                 What VIP Members Get Access To:
               </h2>
               <div className="grid md:grid-cols-3 gap-4">
-                {mockVipPicks.slice(0, 3).map((pick) => (
+                {vipPicks.slice(0, 3).map((pick) => (
                   <Card key={pick.id} className="relative overflow-hidden">
                     <div className="absolute inset-0 backdrop-blur-sm bg-surface/90 z-10 flex flex-col items-center justify-center p-4">
                       <Lock className="w-6 h-6 text-secondary mb-2" />
@@ -147,6 +134,7 @@ export default async function DashboardPage() {
                 ))}
               </div>
             </div>
+            )}
           </div>
         </main>
 
@@ -213,11 +201,19 @@ export default async function DashboardPage() {
             <h2 className="text-lg font-semibold text-text-primary mb-4">
               Today&apos;s VIP Picks
             </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mockVipPicks.map((pick) => (
-                <PickCard key={pick.id} pick={pick} showAnalysis />
-              ))}
-            </div>
+            {vipPicks.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {vipPicks.map((pick) => (
+                  <PickCard key={pick.id} pick={pick} showAnalysis />
+                ))}
+              </div>
+            ) : (
+              <Card className="p-8 text-center">
+                <p className="text-text-muted">
+                  No VIP picks available yet. Check back soon!
+                </p>
+              </Card>
+            )}
           </div>
 
           {/* Quick Links */}

@@ -9,95 +9,17 @@ import { ResultBadge } from "@/components/features/result-badge";
 import { formatDate } from "@/lib/utils";
 import { Pick } from "@/types";
 import { ArrowLeft, History } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
-// Mock history data
-const pickHistory: Pick[] = [
-  {
-    id: "h1",
-    sport: "nba",
-    league: "NBA",
-    matchup: "Lakers vs Celtics",
-    selection: "Lakers +4.5",
-    odds: 1.91,
-    stake: 1,
-    confidence: "high",
-    analysis: null,
-    is_vip: true,
-    result: "win",
-    profit_loss: 0.91,
-    event_date: new Date(Date.now() - 86400000).toISOString(),
-    settled_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "h2",
-    sport: "nfl",
-    league: "NFL",
-    matchup: "Chiefs vs Bills",
-    selection: "Over 48.5",
-    odds: 1.87,
-    stake: 2,
-    confidence: "high",
-    analysis: null,
-    is_vip: true,
-    result: "win",
-    profit_loss: 1.74,
-    event_date: new Date(Date.now() - 172800000).toISOString(),
-    settled_at: new Date(Date.now() - 86400000).toISOString(),
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "h3",
-    sport: "soccer",
-    league: "Premier League",
-    matchup: "Arsenal vs Chelsea",
-    selection: "Arsenal ML",
-    odds: 2.10,
-    stake: 1,
-    confidence: "medium",
-    analysis: null,
-    is_vip: true,
-    result: "loss",
-    profit_loss: -1,
-    event_date: new Date(Date.now() - 259200000).toISOString(),
-    settled_at: new Date(Date.now() - 172800000).toISOString(),
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "h4",
-    sport: "nba",
-    league: "NBA",
-    matchup: "Bucks vs Heat",
-    selection: "Under 215.5",
-    odds: 1.90,
-    stake: 1,
-    confidence: "medium",
-    analysis: null,
-    is_vip: true,
-    result: "win",
-    profit_loss: 0.90,
-    event_date: new Date(Date.now() - 345600000).toISOString(),
-    settled_at: new Date(Date.now() - 259200000).toISOString(),
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: "h5",
-    sport: "tennis",
-    league: "ATP",
-    matchup: "Djokovic vs Sinner",
-    selection: "Sinner +1.5 Sets",
-    odds: 1.75,
-    stake: 1,
-    confidence: "high",
-    analysis: null,
-    is_vip: true,
-    result: "win",
-    profit_loss: 0.75,
-    event_date: new Date(Date.now() - 432000000).toISOString(),
-    settled_at: new Date(Date.now() - 345600000).toISOString(),
-    created_at: new Date().toISOString(),
-  },
-];
+async function getVipPickHistory(): Promise<Pick[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("picks")
+    .select("*")
+    .eq("is_vip", true)
+    .order("event_date", { ascending: false });
+  return data || [];
+}
 
 export default async function HistoryPage() {
   const { userId } = await auth();
@@ -106,11 +28,15 @@ export default async function HistoryPage() {
     redirect("/sign-in");
   }
 
+  // Fetch VIP pick history from database
+  const pickHistory = await getVipPickHistory();
+
   // Calculate summary
+  const settledPicks = pickHistory.filter((p) => p.result !== "pending");
   const totalPicks = pickHistory.length;
-  const wins = pickHistory.filter((p) => p.result === "win").length;
-  const losses = pickHistory.filter((p) => p.result === "loss").length;
-  const totalProfit = pickHistory.reduce(
+  const wins = settledPicks.filter((p) => p.result === "win").length;
+  const losses = settledPicks.filter((p) => p.result === "loss").length;
+  const totalProfit = settledPicks.reduce(
     (sum, p) => sum + (p.profit_loss || 0),
     0
   );
@@ -162,7 +88,7 @@ export default async function HistoryPage() {
                 <div className="text-center">
                   <p className="text-sm text-text-muted mb-1">Win Rate</p>
                   <p className="text-2xl font-bold text-primary">
-                    {Math.round((wins / totalPicks) * 100)}%
+                    {settledPicks.length > 0 ? Math.round((wins / settledPicks.length) * 100) : 0}%
                   </p>
                 </div>
                 <div className="text-center">
