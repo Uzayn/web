@@ -1,8 +1,23 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { format, isToday as isTodayFn, isTomorrow as isTomorrowFn } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function formatNavigatorDate(date: Date): string {
+  if (isTodayFn(date)) {
+    return `Today, ${format(date, "MMM d")}`;
+  }
+  if (isTomorrowFn(date)) {
+    return `Tomorrow, ${format(date, "MMM d")}`;
+  }
+  return format(date, "EEEE, MMM d");
+}
+
+export function toDateString(date: Date): string {
+  return format(date, "yyyy-MM-dd");
 }
 
 export function formatOdds(odds: number): string {

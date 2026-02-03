@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const sport = searchParams.get("sport");
+    const date = searchParams.get("date");
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
     const includeVip = searchParams.get("includeVip") === "true";
@@ -17,6 +18,13 @@ export async function GET(request: NextRequest) {
       .select("*")
       .order("event_date", { ascending: false })
       .range(offset, offset + limit - 1);
+
+    if (date) {
+      const nextDate = new Date(date + "T00:00:00Z");
+      nextDate.setUTCDate(nextDate.getUTCDate() + 1);
+      const nextDateStr = nextDate.toISOString().split("T")[0];
+      query = query.gte("event_date", date).lt("event_date", nextDateStr);
+    }
 
     if (!includeVip) {
       query = query.eq("is_vip", false);

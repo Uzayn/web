@@ -1,16 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { addDays, subDays } from "date-fns";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { DateNavigator } from "@/components/features/date-navigator";
+import { SportFilter } from "@/components/features/sport-filter";
+import { PicksFeed } from "@/components/features/picks-feed";
+import { StickyVIPBanner } from "@/components/features/sticky-vip-banner";
 import { StatsBar } from "@/components/features/stats-bar";
 import { EmailCaptureForm } from "@/components/features/email-capture-form";
 import { TestimonialCard } from "@/components/features/testimonial-card";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toDateString } from "@/lib/utils";
 import { Pick, Stats } from "@/types";
 import {
   TrendingUp,
@@ -19,7 +25,6 @@ import {
   Users,
   Check,
   ArrowRight,
-  Trophy,
   Target,
   BarChart3,
 } from "lucide-react";
@@ -46,40 +51,58 @@ const testimonials = [
 ];
 
 export default function HomePage() {
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [recentPicks, setRecentPicks] = useState<Pick[]>([]);
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const [selectedSport, setSelectedSport] = useState("all");
+  const [picks, setPicks] = useState<Pick[]>([]);
+  const [isVip, setIsVip] = useState(false);
+  const [statusLoaded, setStatusLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [statsRes, picksRes] = await Promise.all([
-          fetch("/api/stats"),
-          fetch("/api/picks"),
-        ]);
+    fetch("/api/user/status")
+      .then((res) => res.json())
+      .then((data) => {
+        setIsVip(data.isVip);
+      })
+      .catch(() => {})
+      .finally(() => setStatusLoaded(true));
 
-        if (statsRes.ok) {
-          const statsData = await statsRes.json();
-          setStats(statsData.overall || null);
-        }
-
-        if (picksRes.ok) {
-          const picksData = await picksRes.json();
-          // Get 3 most recent non-VIP picks for preview
-          const picks = (picksData.picks || [])
-            .filter((p: Pick) => !p.is_vip)
-            .slice(0, 3);
-          setRecentPicks(picks);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
+    fetch("/api/stats")
+      .then((res) => res.json())
+      .then((data) => {
+        setStats(data.overall || null);
+      })
+      .catch(() => {})
+      .finally(() => setStatsLoading(false));
   }, []);
+
+  const fetchPicks = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams({
+        date: toDateString(currentDate),
+        includeVip: "true",
+      });
+      if (selectedSport !== "all") {
+        params.set("sport", selectedSport);
+      }
+      const res = await fetch(`/api/picks?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setPicks(data.picks || []);
+      }
+    } catch (error) {
+      console.error("Error fetching picks:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentDate, selectedSport]);
+
+  useEffect(() => {
+    fetchPicks();
+  }, [fetchPicks]);
 
   const displayStats = stats || {
     totalPicks: 0,
@@ -93,12 +116,34 @@ export default function HomePage() {
       <Navbar />
 
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* Picks Section */}
+        <section className="px-4 py-6">
+          <div className="max-w-[1200px] mx-auto space-y-6">
+            <DateNavigator
+              currentDate={currentDate}
+              onPrevious={() => setCurrentDate((d) => subDays(d, 1))}
+              onNext={() => setCurrentDate((d) => addDays(d, 1))}
+            />
+
+            <SportFilter
+              selected={selectedSport}
+              onChange={setSelectedSport}
+            />
+
+            <PicksFeed
+              picks={picks}
+              isVip={isVip}
+              isLoading={isLoading}
+            />
+          </div>
+        </section>
+
+        {/* Hero */}
         <section className="py-20 px-4">
           <div className="container mx-auto text-center max-w-4xl">
             <Badge variant="secondary" className="mb-4">
-              <Trophy className="w-3 h-3 mr-1" />
-              {isLoading ? "..." : `${displayStats.winRate}%`} Win Rate This Season
+              <TrendingUp className="w-3 h-3 mr-1" />
+              {statsLoading ? "..." : `${displayStats.winRate}%`} Win Rate This Season
             </Badge>
 
             <h1 className="text-4xl md:text-6xl font-bold text-text-primary mb-6">
@@ -112,7 +157,7 @@ export default function HomePage() {
               winning formula.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/vip">
                 <Button size="lg" className="w-full sm:w-auto">
                   Join VIP Now
@@ -125,8 +170,13 @@ export default function HomePage() {
                 </Button>
               </Link>
             </div>
+          </div>
+        </section>
 
-            {isLoading ? (
+        {/* Stats Bar */}
+        <section className="py-12 px-4 bg-surface/50">
+          <div className="container mx-auto max-w-4xl">
+            {statsLoading ? (
               <Skeleton className="h-24 w-full rounded-xl" />
             ) : (
               <StatsBar
@@ -140,7 +190,7 @@ export default function HomePage() {
         </section>
 
         {/* How It Works */}
-        <section className="py-16 px-4 bg-surface/50">
+        <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
             <h2 className="text-2xl md:text-3xl font-bold text-center text-text-primary mb-12">
               How It Works
@@ -186,66 +236,6 @@ export default function HomePage() {
                 </p>
               </Card>
             </div>
-          </div>
-        </section>
-
-        {/* Recent Picks Preview */}
-        <section className="py-16 px-4">
-          <div className="container mx-auto max-w-5xl">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
-                Recent Picks
-              </h2>
-              <Link
-                href="/picks"
-                className="text-primary hover:underline text-sm font-medium"
-              >
-                View All
-                <ArrowRight className="w-4 h-4 inline ml-1" />
-              </Link>
-            </div>
-
-            {isLoading ? (
-              <div className="grid md:grid-cols-3 gap-4">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-40 rounded-xl" />
-                ))}
-              </div>
-            ) : recentPicks.length > 0 ? (
-              <div className="grid md:grid-cols-3 gap-4">
-                {recentPicks.map((pick) => (
-                  <Card key={pick.id} className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <Badge variant="outline">{pick.sport.toUpperCase()}</Badge>
-                      <Badge
-                        variant={
-                          pick.result === "win"
-                            ? "success"
-                            : pick.result === "loss"
-                            ? "danger"
-                            : "default"
-                        }
-                      >
-                        {pick.result.charAt(0).toUpperCase() + pick.result.slice(1)}
-                      </Badge>
-                    </div>
-                    <h3 className="font-semibold text-text-primary mb-1">
-                      {pick.matchup}
-                    </h3>
-                    <p className="text-primary text-sm font-medium mb-2">
-                      {pick.selection}
-                    </p>
-                    <p className="text-xs text-text-muted">Odds: {pick.odds}</p>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="p-8 text-center">
-                <p className="text-text-muted">
-                  No picks yet. Check back soon for expert predictions!
-                </p>
-              </Card>
-            )}
           </div>
         </section>
 
@@ -307,7 +297,7 @@ export default function HomePage() {
                 <Card className="p-4 text-center">
                   <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
                   <p className="font-semibold text-text-primary">
-                    {isLoading ? "..." : `+${displayStats.roi}%`}
+                    {statsLoading ? "..." : `+${displayStats.roi}%`}
                   </p>
                   <p className="text-xs text-text-muted">Average ROI</p>
                 </Card>
@@ -340,6 +330,8 @@ export default function HomePage() {
       </main>
 
       <Footer />
+
+      {statusLoaded && !isVip && <StickyVIPBanner />}
     </div>
   );
 }

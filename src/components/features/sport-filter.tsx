@@ -10,11 +10,11 @@ interface SportFilterProps {
 
 export function SportFilter({ selected, onChange }: SportFilterProps) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex gap-2 overflow-x-auto scrollbar-hide md:flex-wrap">
       <button
         onClick={() => onChange("all")}
         className={cn(
-          "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
+          "px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
           selected === "all"
             ? "bg-primary text-black"
             : "bg-surface border border-border text-text-muted hover:border-primary/50"
@@ -27,7 +27,7 @@ export function SportFilter({ selected, onChange }: SportFilterProps) {
           key={sport.value}
           onClick={() => onChange(sport.value)}
           className={cn(
-            "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
+            "px-3 py-1.5 rounded-full text-sm font-medium transition-colors whitespace-nowrap",
             selected === sport.value
               ? "bg-primary text-black"
               : "bg-surface border border-border text-text-muted hover:border-primary/50"

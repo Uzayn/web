@@ -33,11 +33,11 @@ export function PricingCard({
     <Card
       className={cn(
         "relative flex flex-col h-full",
-        isPopular && "border-primary shadow-lg shadow-primary/20"
+        isPopular && "border-primary shadow-lg shadow-primary/20",
       )}
     >
       {isPopular && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2">
           <Badge variant="primary" className="px-3 py-1">
             Most Popular
           </Badge>
