@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "sonner";
+import { RouteProgress } from "@/components/layout/route-progress";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -40,6 +42,9 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-text-primary`}
         >
+          <Suspense fallback={null}>
+            <RouteProgress />
+          </Suspense>
           {children}
           <Toaster
             position="bottom-right"
