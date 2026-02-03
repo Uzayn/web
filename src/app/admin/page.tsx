@@ -69,80 +69,80 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-text-primary mb-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-text-primary mb-6">
         Admin Dashboard
       </h1>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-muted">Total Users</p>
+                <p className="text-xs sm:text-sm text-text-muted">Total Users</p>
                 {isLoading ? (
-                  <Skeleton className="h-8 w-16 mt-1" />
+                  <Skeleton className="h-7 sm:h-8 w-12 sm:w-16 mt-1" />
                 ) : (
-                  <p className="text-2xl font-bold text-text-primary">
+                  <p className="text-xl sm:text-2xl font-bold text-text-primary">
                     {stats?.totalUsers || 0}
                   </p>
                 )}
               </div>
-              <Users className="w-8 h-8 text-primary" />
+              <Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-muted">VIP Members</p>
+                <p className="text-xs sm:text-sm text-text-muted">VIP</p>
                 {isLoading ? (
-                  <Skeleton className="h-8 w-16 mt-1" />
+                  <Skeleton className="h-7 sm:h-8 w-12 sm:w-16 mt-1" />
                 ) : (
-                  <p className="text-2xl font-bold text-text-primary">
+                  <p className="text-xl sm:text-2xl font-bold text-text-primary">
                     {stats?.vipMembers || 0}
                   </p>
                 )}
               </div>
-              <Crown className="w-8 h-8 text-secondary" />
+              <Crown className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-muted">Total Picks</p>
+                <p className="text-xs sm:text-sm text-text-muted">Total Picks</p>
                 {isLoading ? (
-                  <Skeleton className="h-8 w-16 mt-1" />
+                  <Skeleton className="h-7 sm:h-8 w-12 sm:w-16 mt-1" />
                 ) : (
-                  <p className="text-2xl font-bold text-text-primary">
+                  <p className="text-xl sm:text-2xl font-bold text-text-primary">
                     {stats?.totalPicks || 0}
                   </p>
                 )}
               </div>
-              <FileText className="w-8 h-8 text-primary" />
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="pt-4 sm:pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-text-muted">Today&apos;s Picks</p>
+                <p className="text-xs sm:text-sm text-text-muted">Today</p>
                 {isLoading ? (
-                  <Skeleton className="h-8 w-16 mt-1" />
+                  <Skeleton className="h-7 sm:h-8 w-12 sm:w-16 mt-1" />
                 ) : (
-                  <p className="text-2xl font-bold text-text-primary">
+                  <p className="text-xl sm:text-2xl font-bold text-text-primary">
                     {todaysPicks.length}
                   </p>
                 )}
               </div>
-              <TrendingUp className="w-8 h-8 text-secondary" />
+              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-secondary" />
             </div>
           </CardContent>
         </Card>
@@ -166,20 +166,20 @@ export default function AdminDashboard() {
                 {recentPicks.map((pick) => (
                   <div
                     key={pick.id}
-                    className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                    className="flex items-center justify-between gap-2 py-2 border-b border-border last:border-0"
                   >
-                    <div className="flex items-center gap-3">
-                      <Badge variant="outline" className="uppercase">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <Badge variant="outline" className="uppercase text-xs flex-shrink-0">
                         {pick.sport}
                       </Badge>
-                      <div>
-                        <p className="text-sm font-medium text-text-primary">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-text-primary truncate">
                           {pick.matchup}
                         </p>
-                        <p className="text-xs text-primary">{pick.selection}</p>
+                        <p className="text-xs text-primary truncate">{pick.selection}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
                       {pick.result === "pending" && (
                         <Clock className="w-4 h-4 text-text-muted" />
                       )}
@@ -190,7 +190,7 @@ export default function AdminDashboard() {
                         <XCircle className="w-4 h-4 text-danger" />
                       )}
                       <span
-                        className={`text-xs capitalize ${
+                        className={`text-xs capitalize hidden sm:inline ${
                           pick.result === "win"
                             ? "text-primary"
                             : pick.result === "loss"

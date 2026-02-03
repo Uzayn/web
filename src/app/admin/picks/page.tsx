@@ -75,17 +75,17 @@ export default function AdminPicksPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-text-primary">Manage Picks</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Manage Picks</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={fetchPicks} disabled={isLoading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-            Refresh
+          <Button variant="outline" size="sm" onClick={fetchPicks} disabled={isLoading}>
+            <RefreshCw className={`w-4 h-4 sm:mr-2 ${isLoading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
           <Link href="/admin/picks/new">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Pick
+            <Button size="sm">
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Add Pick</span>
             </Button>
           </Link>
         </div>
@@ -131,124 +131,180 @@ export default function AdminPicksPage() {
         </CardContent>
       </Card>
 
-      {/* Picks Table */}
-      <Card>
-        <CardContent className="pt-6">
-          {isLoading ? (
-            <div className="space-y-3">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-14" />
-              ))}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-sm font-medium text-text-muted">
-                      Sport
-                    </th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-text-muted">
-                      Matchup
-                    </th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-text-muted">
-                      Selection
-                    </th>
-                    <th className="text-center py-3 px-2 text-sm font-medium text-text-muted">
-                      Odds
-                    </th>
-                    <th className="text-center py-3 px-2 text-sm font-medium text-text-muted">
-                      Type
-                    </th>
-                    <th className="text-center py-3 px-2 text-sm font-medium text-text-muted">
-                      Result
-                    </th>
-                    <th className="text-center py-3 px-2 text-sm font-medium text-text-muted">
-                      Date
-                    </th>
-                    <th className="text-right py-3 px-2 text-sm font-medium text-text-muted">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPicks.map((pick) => (
-                    <tr
-                      key={pick.id}
-                      className="border-b border-border last:border-0 hover:bg-surface/50"
-                    >
-                      <td className="py-3 px-2">
-                        <Badge variant="outline" className="uppercase">
-                          {pick.sport}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-2">
-                        <p className="font-medium text-text-primary">
-                          {pick.matchup}
-                        </p>
-                      </td>
-                      <td className="py-3 px-2">
-                        <p className="text-primary">{pick.selection}</p>
-                      </td>
-                      <td className="py-3 px-2 text-center text-text-primary">
-                        {pick.odds}
-                      </td>
-                      <td className="py-3 px-2 text-center">
-                        <Badge variant={pick.is_vip ? "secondary" : "default"}>
-                          {pick.is_vip ? "VIP" : "Free"}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-2 text-center">
-                        <ResultBadge result={pick.result} />
-                      </td>
-                      <td className="py-3 px-2 text-center text-sm text-text-muted">
-                        {formatDateTime(pick.event_date)}
-                      </td>
-                      <td className="py-3 px-2">
-                        <div className="flex items-center justify-end gap-1">
-                          {pick.result === "pending" && (
-                            <>
-                              <button
-                                onClick={() => handleSettle(pick.id, "win")}
-                                className="p-1.5 rounded hover:bg-primary/20 text-primary"
-                                title="Mark Win"
-                              >
-                                <CheckCircle className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleSettle(pick.id, "loss")}
-                                className="p-1.5 rounded hover:bg-danger/20 text-danger"
-                                title="Mark Loss"
-                              >
-                                <XCircle className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleSettle(pick.id, "push")}
-                                className="p-1.5 rounded hover:bg-surface text-text-muted"
-                                title="Mark Push"
-                              >
-                                <MinusCircle className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+      {/* Picks List */}
+      {isLoading ? (
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-20" />
+          ))}
+        </div>
+      ) : (
+        <>
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-3">
+            {filteredPicks.map((pick) => (
+              <Card key={pick.id} className="p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="uppercase text-xs">
+                      {pick.sport}
+                    </Badge>
+                    <Badge variant={pick.is_vip ? "secondary" : "default"} className="text-xs">
+                      {pick.is_vip ? "VIP" : "Free"}
+                    </Badge>
+                  </div>
+                  <ResultBadge result={pick.result} />
+                </div>
+                <p className="font-medium text-text-primary mb-1">{pick.matchup}</p>
+                <p className="text-primary text-sm mb-2">{pick.selection}</p>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-text-muted">
+                    {pick.odds} • {formatDateTime(pick.event_date)}
+                  </span>
+                  {pick.result === "pending" && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleSettle(pick.id, "win")}
+                        className="p-2 rounded hover:bg-primary/20 text-primary"
+                        title="Mark Win"
+                      >
+                        <CheckCircle className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleSettle(pick.id, "loss")}
+                        className="p-2 rounded hover:bg-danger/20 text-danger"
+                        title="Mark Loss"
+                      >
+                        <XCircle className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleSettle(pick.id, "push")}
+                        className="p-2 rounded hover:bg-surface text-text-muted"
+                        title="Mark Push"
+                      >
+                        <MinusCircle className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
 
-          {!isLoading && filteredPicks.length === 0 && (
-            <p className="text-center text-text-muted py-8">
-              {picks.length === 0
-                ? "No picks yet. Add your first pick!"
-                : "No picks found matching your filters."}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+          {/* Desktop Table View */}
+          <Card className="hidden lg:block">
+            <CardContent className="pt-6">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-2 text-sm font-medium text-text-muted">
+                        Sport
+                      </th>
+                      <th className="text-left py-3 px-2 text-sm font-medium text-text-muted">
+                        Matchup
+                      </th>
+                      <th className="text-left py-3 px-2 text-sm font-medium text-text-muted">
+                        Selection
+                      </th>
+                      <th className="text-center py-3 px-2 text-sm font-medium text-text-muted">
+                        Odds
+                      </th>
+                      <th className="text-center py-3 px-2 text-sm font-medium text-text-muted">
+                        Type
+                      </th>
+                      <th className="text-center py-3 px-2 text-sm font-medium text-text-muted">
+                        Result
+                      </th>
+                      <th className="text-center py-3 px-2 text-sm font-medium text-text-muted">
+                        Date
+                      </th>
+                      <th className="text-right py-3 px-2 text-sm font-medium text-text-muted">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPicks.map((pick) => (
+                      <tr
+                        key={pick.id}
+                        className="border-b border-border last:border-0 hover:bg-surface/50"
+                      >
+                        <td className="py-3 px-2">
+                          <Badge variant="outline" className="uppercase">
+                            {pick.sport}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-2">
+                          <p className="font-medium text-text-primary">
+                            {pick.matchup}
+                          </p>
+                        </td>
+                        <td className="py-3 px-2">
+                          <p className="text-primary">{pick.selection}</p>
+                        </td>
+                        <td className="py-3 px-2 text-center text-text-primary">
+                          {pick.odds}
+                        </td>
+                        <td className="py-3 px-2 text-center">
+                          <Badge variant={pick.is_vip ? "secondary" : "default"}>
+                            {pick.is_vip ? "VIP" : "Free"}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-2 text-center">
+                          <ResultBadge result={pick.result} />
+                        </td>
+                        <td className="py-3 px-2 text-center text-sm text-text-muted">
+                          {formatDateTime(pick.event_date)}
+                        </td>
+                        <td className="py-3 px-2">
+                          <div className="flex items-center justify-end gap-1">
+                            {pick.result === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => handleSettle(pick.id, "win")}
+                                  className="p-1.5 rounded hover:bg-primary/20 text-primary"
+                                  title="Mark Win"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleSettle(pick.id, "loss")}
+                                  className="p-1.5 rounded hover:bg-danger/20 text-danger"
+                                  title="Mark Loss"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleSettle(pick.id, "push")}
+                                  className="p-1.5 rounded hover:bg-surface text-text-muted"
+                                  title="Mark Push"
+                                >
+                                  <MinusCircle className="w-4 h-4" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {!isLoading && filteredPicks.length === 0 && (
+        <Card className="p-8">
+          <p className="text-center text-text-muted">
+            {picks.length === 0
+              ? "No picks yet. Add your first pick!"
+              : "No picks found matching your filters."}
+          </p>
+        </Card>
+      )}
     </div>
   );
 }

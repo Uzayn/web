@@ -83,7 +83,7 @@ export default function NewPickPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Select
                 label="Sport"
                 name="sport"
@@ -118,7 +118,7 @@ export default function NewPickPage() {
               required
             />
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               <Input
                 label="Odds"
                 name="odds"
@@ -149,6 +149,7 @@ export default function NewPickPage() {
                   value: c.value,
                   label: c.label,
                 }))}
+                className="col-span-2 sm:col-span-1"
               />
             </div>
 
@@ -184,13 +185,13 @@ export default function NewPickPage() {
               </label>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4">
               <Link href="/admin/picks">
-                <Button type="button" variant="outline">
+                <Button type="button" variant="outline" className="w-full sm:w-auto">
                   Cancel
                 </Button>
               </Link>
-              <Button type="submit" isLoading={isSubmitting}>
+              <Button type="submit" isLoading={isSubmitting} className="w-full sm:w-auto">
                 Create Pick
               </Button>
             </div>
