@@ -9,7 +9,7 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant = "default", ...props }, ref) => {
     const variants = {
       default: "bg-surface text-text-muted border-border",
-      primary: "bg-primary/20 text-primary border-primary/30",
+      primary: "bg-primary/20 text-primary border-transparent",
       secondary: "bg-secondary/20 text-secondary border-secondary/30",
       success: "bg-primary/20 text-primary border-primary/30",
       danger: "bg-danger/20 text-danger border-danger/30",

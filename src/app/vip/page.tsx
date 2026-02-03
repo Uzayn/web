@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
@@ -8,6 +8,8 @@ import { PricingCard } from "@/components/features/pricing-card";
 import { TestimonialCard } from "@/components/features/testimonial-card";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Stats } from "@/types";
 import {
   Trophy,
   TrendingUp,
@@ -20,7 +22,7 @@ import {
 const plans = [
   {
     name: "Monthly",
-    price: 49,
+    price: 10,
     period: "month",
     description: "Full VIP access with monthly billing",
     features: [
@@ -35,9 +37,9 @@ const plans = [
   },
   {
     name: "Yearly",
-    price: 399,
+    price: 96,
     period: "year",
-    description: "Best value - save over 30%",
+    description: "Best value - save 20%",
     features: [
       "All VIP picks (5-10 daily)",
       "Full analysis for each pick",
@@ -48,7 +50,7 @@ const plans = [
       "Exclusive yearly member perks",
     ],
     isPopular: true,
-    savings: "Save $189 per year",
+    savings: "Save $24 per year",
   },
 ];
 
@@ -103,6 +105,25 @@ const faqs = [
 export default function VIPPage() {
   const { isSignedIn } = useUser();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await fetch("/api/stats");
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data.overall || null);
+        }
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchStats();
+  }, []);
 
   const handleSubscribe = async (plan: string) => {
     if (!isSignedIn) {
@@ -161,23 +182,49 @@ export default function VIPPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="p-4 text-center">
                 <TrendingUp className="w-6 h-6 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold text-text-primary">58%</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-14 mx-auto mb-1" />
+                ) : (
+                  <p className="text-2xl font-bold text-text-primary">
+                    {stats?.winRate || 0}%
+                  </p>
+                )}
                 <p className="text-xs text-text-muted">Win Rate</p>
               </Card>
               <Card className="p-4 text-center">
                 <BarChart3 className="w-6 h-6 text-secondary mx-auto mb-2" />
-                <p className="text-2xl font-bold text-text-primary">+12%</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-14 mx-auto mb-1" />
+                ) : (
+                  <p className="text-2xl font-bold text-text-primary">
+                    +{stats?.roi || 0}%
+                  </p>
+                )}
                 <p className="text-xs text-text-muted">ROI</p>
               </Card>
               <Card className="p-4 text-center">
                 <Trophy className="w-6 h-6 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold text-text-primary">+124u</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-14 mx-auto mb-1" />
+                ) : (
+                  <p className="text-2xl font-bold text-text-primary">
+                    {stats?.unitsProfit !== undefined
+                      ? `${stats.unitsProfit > 0 ? "+" : ""}${stats.unitsProfit.toFixed(1)}u`
+                      : "0u"}
+                  </p>
+                )}
                 <p className="text-xs text-text-muted">Units Profit</p>
               </Card>
               <Card className="p-4 text-center">
                 <Users className="w-6 h-6 text-secondary mx-auto mb-2" />
-                <p className="text-2xl font-bold text-text-primary">2,500+</p>
-                <p className="text-xs text-text-muted">VIP Members</p>
+                {isLoading ? (
+                  <Skeleton className="h-8 w-14 mx-auto mb-1" />
+                ) : (
+                  <p className="text-2xl font-bold text-text-primary">
+                    {stats?.totalPicks || 0}
+                  </p>
+                )}
+                <p className="text-xs text-text-muted">Total Picks</p>
               </Card>
             </div>
           </div>
