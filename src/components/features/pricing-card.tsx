@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 interface PricingCardProps {
   name: string;
-  price: number;
+  formattedPrice: string;
   period: string;
   description: string;
   features: string[];
@@ -20,7 +20,7 @@ interface PricingCardProps {
 
 export function PricingCard({
   name,
-  price,
+  formattedPrice,
   period,
   description,
   features,
@@ -49,7 +49,7 @@ export function PricingCard({
         <p className="text-sm text-text-muted mb-4">{description}</p>
 
         <div className="flex items-baseline gap-1 mb-1">
-          <span className="text-4xl font-bold text-text-primary">${price}</span>
+          <span className="text-4xl font-bold text-text-primary">{formattedPrice}</span>
           <span className="text-text-muted">/{period}</span>
         </div>
 

@@ -55,7 +55,8 @@ a {
 }
 
 /* Clerk customization */
-.cl-card {
+.cl-card,
+.cl-modalContent {
   background-color: var(--surface) !important;
   border: 1px solid var(--border) !important;
 }
@@ -64,17 +65,123 @@ a {
 .cl-headerSubtitle,
 .cl-formFieldLabel,
 .cl-formFieldInput,
-.cl-footerActionText {
+.cl-footerActionText,
+.cl-footerActionLink,
+.cl-identityPreviewText,
+.cl-userPreviewMainIdentifier,
+.cl-userPreviewSecondaryIdentifier,
+.cl-formFieldSuccessText,
+.cl-alertText,
+.cl-modalCloseButton,
+.cl-navbarButton,
+.cl-breadcrumbsItem,
+.cl-profileSectionTitle,
+.cl-profileSectionContent,
+.cl-formFieldRadioLabel,
+.cl-accordionTriggerButton {
   color: var(--text-primary) !important;
 }
 
-.cl-formFieldInput {
+.cl-formFieldInput,
+.cl-otpCodeFieldInput {
   background-color: var(--background) !important;
   border-color: var(--border) !important;
+  color: var(--text-primary) !important;
 }
 
 .cl-formButtonPrimary {
   background-color: var(--primary) !important;
+  color: #000 !important;
+}
+
+.cl-formButtonPrimary:hover {
+  background-color: var(--primary) !important;
+  opacity: 0.9;
+}
+
+.cl-socialButtonsBlockButton,
+.cl-alternativeMethodsBlockButton {
+  background-color: var(--background) !important;
+  border-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+.cl-socialButtonsBlockButton:hover,
+.cl-alternativeMethodsBlockButton:hover {
+  background-color: var(--surface) !important;
+}
+
+.cl-socialButtonsBlockButtonText {
+  color: var(--text-primary) !important;
+}
+
+.cl-dividerLine {
+  background-color: var(--border) !important;
+}
+
+.cl-dividerText {
+  color: var(--text-muted) !important;
+}
+
+.cl-footerActionLink {
+  color: var(--primary) !important;
+}
+
+.cl-formFieldInputShowPasswordButton {
+  color: var(--text-muted) !important;
+}
+
+.cl-identityPreview {
+  background-color: var(--background) !important;
+  border-color: var(--border) !important;
+}
+
+.cl-footer {
+  background-color: transparent !important;
+}
+
+.cl-footer p,
+.cl-footer span,
+.cl-footer a,
+.cl-footerPages,
+.cl-footerPagesLink {
+  color: var(--text-muted) !important;
+}
+
+.cl-footer a:hover,
+.cl-footerActionLink:hover {
+  color: var(--primary) !important;
+}
+
+.cl-formFieldErrorText {
+  color: var(--danger) !important;
+}
+
+/* Catch-all for Clerk internal elements, except inside primary buttons */
+[class*="cl-internal"] {
+  color: var(--text-muted) !important;
+}
+
+.cl-formButtonPrimary [class*="cl-internal"],
+.cl-formButtonPrimary span,
+.cl-formButtonPrimary p {
+  color: #000 !important;
+}
+
+.cl-userButtonPopoverCard,
+.cl-userButtonPopoverActions,
+.cl-userButtonPopoverActionButton,
+.cl-userButtonPopoverFooter {
+  background-color: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+.cl-userButtonPopoverActionButton {
+  color: var(--text-primary) !important;
+}
+
+.cl-userButtonPopoverActionButton:hover {
+  background-color: var(--background) !important;
 }
 
 @layer utilities {

@@ -11,6 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Stats } from "@/types";
 import {
+  detectCountry,
+  getCurrencyForCountry,
+  formatPrice,
+  getSavingsText,
+} from "@/lib/currency";
+import {
   Trophy,
   TrendingUp,
   Users,
@@ -19,39 +25,23 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-const plans = [
-  {
-    name: "Monthly",
-    price: 10,
-    period: "month",
-    description: "Full VIP access with monthly billing",
-    features: [
-      "All VIP picks (5-10 daily)",
-      "Full analysis for each pick",
-      "Real-time alerts",
-      "Discord community access",
-      "Monthly performance reports",
-      "Email support",
-    ],
-    isPopular: false,
-  },
-  {
-    name: "Yearly",
-    price: 96,
-    period: "year",
-    description: "Best value - save 20%",
-    features: [
-      "All VIP picks (5-10 daily)",
-      "Full analysis for each pick",
-      "Real-time alerts",
-      "Discord community access",
-      "Monthly performance reports",
-      "Priority email support",
-      "Exclusive yearly member perks",
-    ],
-    isPopular: true,
-    savings: "Save $24 per year",
-  },
+const monthlyFeatures = [
+  "All VIP picks (5-10 daily)",
+  "Full analysis for each pick",
+  "Real-time alerts",
+  "Discord community access",
+  "Monthly performance reports",
+  "Email support",
+];
+
+const yearlyFeatures = [
+  "All VIP picks (5-10 daily)",
+  "Full analysis for each pick",
+  "Real-time alerts",
+  "Discord community access",
+  "Monthly performance reports",
+  "Priority email support",
+  "Exclusive yearly member perks",
 ];
 
 const testimonials = [
@@ -107,22 +97,28 @@ export default function VIPPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currency, setCurrency] = useState<ReturnType<typeof getCurrencyForCountry> | null>(null);
 
   useEffect(() => {
-    async function fetchStats() {
+    async function fetchData() {
       try {
-        const res = await fetch("/api/stats");
-        if (res.ok) {
-          const data = await res.json();
+        const [statsRes, countryCode] = await Promise.all([
+          fetch("/api/stats"),
+          detectCountry(),
+        ]);
+        if (statsRes.ok) {
+          const data = await statsRes.json();
           setStats(data.overall || null);
         }
+        setCurrency(getCurrencyForCountry(countryCode));
       } catch (error) {
-        console.error("Error fetching stats:", error);
+        console.error("Error fetching data:", error);
+        setCurrency(getCurrencyForCountry("US"));
       } finally {
         setIsLoading(false);
       }
     }
-    fetchStats();
+    fetchData();
   }, []);
 
   const handleSubscribe = async (plan: string) => {
@@ -238,14 +234,35 @@ export default function VIPPage() {
             </h2>
 
             <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-              {plans.map((plan) => (
-                <PricingCard
-                  key={plan.name}
-                  {...plan}
-                  onSubscribe={() => handleSubscribe(plan.period)}
-                  isLoading={loadingPlan === plan.period}
-                />
-              ))}
+              {currency ? (
+                <>
+                  <PricingCard
+                    name="Monthly"
+                    formattedPrice={formatPrice(currency.monthly, currency.symbol)}
+                    period="month"
+                    description="Full VIP access with monthly billing"
+                    features={monthlyFeatures}
+                    onSubscribe={() => handleSubscribe("month")}
+                    isLoading={loadingPlan === "month"}
+                  />
+                  <PricingCard
+                    name="Yearly"
+                    formattedPrice={formatPrice(currency.yearly, currency.symbol)}
+                    period="year"
+                    description="Best value - save 20%"
+                    features={yearlyFeatures}
+                    isPopular
+                    savings={getSavingsText(currency)}
+                    onSubscribe={() => handleSubscribe("year")}
+                    isLoading={loadingPlan === "year"}
+                  />
+                </>
+              ) : (
+                <>
+                  <Skeleton className="h-96 rounded-xl" />
+                  <Skeleton className="h-96 rounded-xl" />
+                </>
+              )}
             </div>
           </div>
         </section>
@@ -337,19 +354,18 @@ export default function VIPPage() {
               Join thousands of successful bettors. 7-day money-back guarantee.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {plans.map((plan) => (
-                <button
-                  key={plan.name}
-                  onClick={() => handleSubscribe(plan.period)}
-                  className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                    plan.isPopular
-                      ? "bg-primary text-black hover:bg-primary/90"
-                      : "bg-surface border border-border text-text-primary hover:border-primary/50"
-                  }`}
-                >
-                  {plan.isPopular ? "Get Yearly - Best Value" : "Get Monthly"}
-                </button>
-              ))}
+              <button
+                onClick={() => handleSubscribe("month")}
+                className="px-6 py-3 rounded-lg font-medium transition-colors bg-surface border border-border text-text-primary hover:border-primary/50"
+              >
+                Get Monthly
+              </button>
+              <button
+                onClick={() => handleSubscribe("year")}
+                className="px-6 py-3 rounded-lg font-medium transition-colors bg-primary text-black hover:bg-primary/90"
+              >
+                Get Yearly - Best Value
+              </button>
             </div>
           </div>
         </section>
