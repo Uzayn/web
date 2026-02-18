@@ -5,8 +5,8 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-surface">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="md:col-span-1">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+          <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-black" />
@@ -16,19 +16,30 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-text-muted">
-              Expert sports betting analysis and predictions.
+              Free football predictions and soccer betting tips with expert
+              analysis and a verified track record.
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold text-text-primary mb-4">Picks</h4>
+            <h4 className="font-semibold text-text-primary mb-4">
+              Predictions
+            </h4>
             <ul className="space-y-2">
               <li>
                 <Link
                   href="/picks"
                   className="text-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  Free Picks
+                  Football Predictions Today
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/picks"
+                  className="text-sm text-text-muted hover:text-primary transition-colors"
+                >
+                  Free Betting Tips
                 </Link>
               </li>
               <li>
@@ -36,7 +47,7 @@ export function Footer() {
                   href="/vip"
                   className="text-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  VIP Picks
+                  VIP Premium Tips
                 </Link>
               </li>
               <li>
@@ -44,7 +55,29 @@ export function Footer() {
                   href="/results"
                   className="text-sm text-text-muted hover:text-primary transition-colors"
                 >
-                  Track Record
+                  Track Record & Results
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-text-primary mb-4">Resources</h4>
+            <ul className="space-y-2">
+              <li>
+                <Link
+                  href="/blog"
+                  className="text-sm text-text-muted hover:text-primary transition-colors"
+                >
+                  Betting Blog
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/responsible-gambling"
+                  className="text-sm text-text-muted hover:text-primary transition-colors"
+                >
+                  Responsible Gambling
                 </Link>
               </li>
             </ul>
@@ -79,36 +112,6 @@ export function Footer() {
               </li>
             </ul>
           </div>
-
-          <div>
-            <h4 className="font-semibold text-text-primary mb-4">Legal</h4>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/responsible-gambling"
-                  className="text-sm text-text-muted hover:text-primary transition-colors"
-                >
-                  Responsible Gambling
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-text-muted hover:text-primary transition-colors"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-text-muted hover:text-primary transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-            </ul>
-          </div>
         </div>
 
         <div className="border-t border-border mt-8 pt-8">
@@ -121,7 +124,7 @@ export function Footer() {
               <a
                 href="https://www.begambleaware.org"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer nofollow"
                 className="text-primary hover:underline"
               >
                 BeGambleAware.org
@@ -140,7 +143,7 @@ export function Footer() {
               <a
                 href="https://www.begambleaware.org"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer nofollow"
                 className="text-xs text-text-muted hover:text-primary"
               >
                 BeGambleAware
@@ -148,7 +151,7 @@ export function Footer() {
               <a
                 href="https://www.gamcare.org.uk"
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer nofollow"
                 className="text-xs text-text-muted hover:text-primary"
               >
                 GamCare

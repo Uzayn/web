@@ -1,7 +1,29 @@
+import type { Metadata } from "next";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
 import { Card } from "@/components/ui/card";
 import { AlertTriangle, Phone, ExternalLink, Shield } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Responsible Gambling - Stay Safe While Betting",
+  description:
+    "Learn about responsible gambling practices, warning signs of problem gambling, and where to get help. WinPicks is committed to promoting safe betting.",
+  openGraph: {
+    title: "Responsible Gambling - Stay Safe While Betting",
+    description:
+      "Learn about responsible gambling practices, warning signs of problem gambling, and where to get help.",
+    url: "https://winpicks.online/responsible-gambling",
+  },
+  twitter: {
+    title: "Responsible Gambling - Stay Safe While Betting",
+    description:
+      "Learn about responsible gambling practices, warning signs of problem gambling, and where to get help.",
+  },
+  alternates: {
+    canonical: "https://winpicks.online/responsible-gambling",
+  },
+};
 
 export default function ResponsibleGamblingPage() {
   const helplines = [
@@ -58,6 +80,12 @@ export default function ResponsibleGamblingPage() {
 
       <main className="flex-1 py-8 px-4">
         <div className="container mx-auto max-w-3xl">
+          <Breadcrumbs
+            items={[
+              { label: "Responsible Gambling", href: "/responsible-gambling" },
+            ]}
+          />
+
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center">

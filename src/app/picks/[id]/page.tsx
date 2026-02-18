@@ -1,13 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { Breadcrumbs } from "@/components/seo/breadcrumbs";
+import { SportsEventSchema } from "@/components/seo/json-ld";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ResultBadge } from "@/components/features/result-badge";
 import { ConfidenceMeter } from "@/components/features/confidence-meter";
 import { formatDateTime, SPORTS } from "@/lib/utils";
-import { ArrowLeft, Calendar, TrendingUp, Lock } from "lucide-react";
+import { Calendar, TrendingUp, Lock } from "lucide-react";
 
 // This would be fetched from API based on ID
 const mockPick = {
@@ -35,12 +38,47 @@ The line has moved from +5.5 to +4.5, indicating sharp money on the Lakers. We s
   created_at: new Date().toISOString(),
 };
 
-export default function PickDetailPage() {
+export async function generateMetadata({
+  params,
+}: {
+  params: { id: string };
+}): Promise<Metadata> {
+  // In production, fetch the pick from the API/DB
+  const pick = mockPick;
+  const title = `${pick.matchup} Prediction & Betting Tips`;
+  const description = `Expert prediction and betting analysis for ${pick.matchup}. Get our ${pick.confidence} confidence pick with odds of ${pick.odds} and detailed breakdown.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `https://winpicks.online/picks/${params.id}`,
+      type: "article",
+    },
+    twitter: {
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `https://winpicks.online/picks/${params.id}`,
+    },
+  };
+}
+
+export default function PickDetailPage({ params }: { params: { id: string } }) {
   // In production, check if user has VIP access
   const isVip = false;
   const pick = mockPick;
 
-  const sportLabel = SPORTS.find((s) => s.value === pick.sport)?.label || pick.sport;
+  const sportLabel =
+    SPORTS.find((s) => s.value === pick.sport)?.label || pick.sport;
+
+  // Parse teams from matchup
+  const teams = pick.matchup.split(" vs ");
+  const homeTeam = teams[0] || pick.matchup;
+  const awayTeam = teams[1] || "";
 
   // If VIP pick and user is not VIP, show gated content
   if (pick.is_vip && !isVip) {
@@ -49,13 +87,12 @@ export default function PickDetailPage() {
         <Navbar />
         <main className="flex-1 py-8 px-4">
           <div className="container mx-auto max-w-3xl">
-            <Link
-              href="/picks"
-              className="inline-flex items-center gap-2 text-text-muted hover:text-primary mb-6"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Picks
-            </Link>
+            <Breadcrumbs
+              items={[
+                { label: "Picks", href: "/picks" },
+                { label: pick.matchup, href: `/picks/${params.id}` },
+              ]}
+            />
 
             <Card className="p-8 text-center">
               <div className="w-16 h-16 bg-secondary/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -86,13 +123,22 @@ export default function PickDetailPage() {
 
       <main className="flex-1 py-8 px-4">
         <div className="container mx-auto max-w-3xl">
-          <Link
-            href="/picks"
-            className="inline-flex items-center gap-2 text-text-muted hover:text-primary mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Picks
-          </Link>
+          <Breadcrumbs
+            items={[
+              { label: "Picks", href: "/picks" },
+              { label: pick.matchup, href: `/picks/${params.id}` },
+            ]}
+          />
+
+          {awayTeam && (
+            <SportsEventSchema
+              homeTeam={homeTeam}
+              awayTeam={awayTeam}
+              date={pick.event_date}
+              description={`Expert prediction for ${pick.matchup}: ${pick.selection} at odds ${pick.odds}`}
+              url={`https://winpicks.online/picks/${params.id}`}
+            />
+          )}
 
           <Card className="p-6">
             <div className="flex flex-wrap items-center gap-2 mb-4">
