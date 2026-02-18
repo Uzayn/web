@@ -92,8 +92,7 @@ export async function fetchSoccerFixtures(date: string): Promise<Fixture[]> {
 }
 
 export async function fetchOddsApiFixtures(
-  sport: string,
-  _date: string
+  sport: string
 ): Promise<Fixture[]> {
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) {
@@ -135,5 +134,5 @@ export async function fetchFixtures(
   if (sport === "soccer") {
     return fetchSoccerFixtures(date);
   }
-  return fetchOddsApiFixtures(sport, date);
+  return fetchOddsApiFixtures(sport);
 }
