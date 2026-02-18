@@ -46,7 +46,7 @@ export async function generateMetadata({
   // In production, fetch the pick from the API/DB
   const pick = mockPick;
   const title = `${pick.matchup} Prediction & Betting Tips`;
-  const description = `Expert prediction and betting analysis for ${pick.matchup}. Get our ${pick.confidence} confidence pick with odds of ${pick.odds} and detailed breakdown.`;
+  const description = `Expert prediction and betting analysis for ${pick.matchup}. Get our ${pick.confidence} confidence pick${pick.odds != null ? ` with odds of ${pick.odds}` : ""} and detailed breakdown.`;
 
   return {
     title,
@@ -135,7 +135,7 @@ export default function PickDetailPage({ params }: { params: { id: string } }) {
               homeTeam={homeTeam}
               awayTeam={awayTeam}
               date={pick.event_date}
-              description={`Expert prediction for ${pick.matchup}: ${pick.selection} at odds ${pick.odds}`}
+              description={`Expert prediction for ${pick.matchup}: ${pick.selection}${pick.odds != null ? ` at odds ${pick.odds}` : ""}`}
               url={`https://winpicks.online/picks/${params.id}`}
             />
           )}
@@ -165,17 +165,13 @@ export default function PickDetailPage({ params }: { params: { id: string } }) {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                <div>
-                  <p className="text-xs text-text-muted mb-1">Odds</p>
-                  <p className="font-semibold text-text-primary">{pick.odds}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-text-muted mb-1">Stake</p>
-                  <p className="font-semibold text-text-primary">
-                    {pick.stake}u
-                  </p>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                {pick.odds != null && (
+                  <div>
+                    <p className="text-xs text-text-muted mb-1">Odds</p>
+                    <p className="font-semibold text-text-primary">{pick.odds}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-text-muted mb-1">Confidence</p>
                   <ConfidenceMeter confidence={pick.confidence} />

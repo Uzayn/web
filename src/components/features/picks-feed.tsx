@@ -14,11 +14,11 @@ interface PicksFeedProps {
 export function PicksFeed({ picks, isVip, isLoading }: PicksFeedProps) {
   if (isLoading) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <div className="h-6 w-32 bg-surface rounded mb-4 animate-pulse" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[...Array(4)].map((_, i) => (
+          <div className="h-6 w-32 bg-surface rounded mb-3 animate-pulse" />
+          <div className="space-y-2">
+            {[...Array(6)].map((_, i) => (
               <PickCardSkeleton key={i} />
             ))}
           </div>
@@ -48,7 +48,7 @@ export function PicksFeed({ picks, isVip, isLoading }: PicksFeedProps) {
           <h2 className="text-lg font-semibold text-text-primary mb-4">
             Free Picks ({freePicks.length})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
             {freePicks.map((pick) => (
               <PickCard key={pick.id} pick={pick} />
             ))}
@@ -62,7 +62,7 @@ export function PicksFeed({ picks, isVip, isLoading }: PicksFeedProps) {
             <Lock className="w-4 h-4 text-secondary" />
             VIP Picks ({vipPicks.length})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
             {vipPicks.map((pick) =>
               isVip ? (
                 <PickCard key={pick.id} pick={pick} />

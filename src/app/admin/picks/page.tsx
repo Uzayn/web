@@ -159,7 +159,7 @@ export default function AdminPicksPage() {
                 <p className="text-primary text-sm mb-2">{pick.selection}</p>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-text-muted">
-                    {pick.odds} • {formatDateTime(pick.event_date)}
+                    {pick.odds != null ? `${pick.odds} • ` : ""}{formatDateTime(pick.event_date)}
                   </span>
                   {pick.result === "pending" && (
                     <div className="flex items-center gap-1">
@@ -244,7 +244,7 @@ export default function AdminPicksPage() {
                           <p className="text-primary">{pick.selection}</p>
                         </td>
                         <td className="py-3 px-2 text-center text-text-primary">
-                          {pick.odds}
+                          {pick.odds ?? "—"}
                         </td>
                         <td className="py-3 px-2 text-center">
                           <Badge variant={pick.is_vip ? "secondary" : "default"}>

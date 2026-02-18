@@ -19,12 +19,13 @@ export interface Pick {
   league: string | null;
   matchup: string;
   selection: string;
-  odds: number;
+  odds: number | null;
   stake: number | null;
   confidence: Confidence;
   analysis: string | null;
   is_vip: boolean;
   result: PickResult;
+  score: string | null;
   profit_loss: number | null;
   event_date: string;
   settled_at: string | null;

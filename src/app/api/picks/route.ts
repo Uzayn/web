@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         league: body.league || null,
         matchup: body.matchup,
         selection: body.selection,
-        odds: body.odds,
+        odds: body.odds ?? null,
         stake: body.stake || 1,
         confidence: body.confidence || "medium",
         analysis: body.analysis || null,

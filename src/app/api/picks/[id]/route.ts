@@ -61,13 +61,15 @@ export async function PATCH(
         const stake = existingPick.stake || 1;
         let profitLoss = 0;
 
-        if (body.result === "win") {
-          profitLoss = (existingPick.odds - 1) * stake;
-        } else if (body.result === "loss") {
-          profitLoss = -stake;
+        if (existingPick.odds != null) {
+          if (body.result === "win") {
+            profitLoss = (existingPick.odds - 1) * stake;
+          } else if (body.result === "loss") {
+            profitLoss = -stake;
+          }
+          updateData.profit_loss = profitLoss;
         }
 
-        updateData.profit_loss = profitLoss;
         updateData.settled_at = new Date().toISOString();
       }
     }

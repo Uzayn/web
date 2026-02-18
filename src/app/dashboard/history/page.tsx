@@ -134,7 +134,7 @@ export default async function HistoryPage() {
                         {formatDate(pick.event_date)}
                       </span>
                       <span className="text-text-muted">
-                        {pick.odds}
+                        {pick.odds ?? "—"}
                       </span>
                       <ResultBadge result={pick.result} />
                       <span
