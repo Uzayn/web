@@ -88,6 +88,50 @@ export const CONFIDENCE_LEVELS = [
   { value: "high", label: "High", color: "text-primary" },
 ] as const;
 
+export const SELECTION_PRESETS: Record<string, string[]> = {
+  soccer: [
+    "Home Win", "Draw", "Away Win",
+    "Over 0.5", "Over 1.5", "Over 2.5", "Over 3.5",
+    "Under 0.5", "Under 1.5", "Under 2.5", "Under 3.5",
+    "BTTS Yes", "BTTS No",
+    "Home or Draw", "Away or Draw", "Home or Away",
+  ],
+  nba: [
+    "Home Win", "Away Win",
+    "Home Spread", "Away Spread",
+    "Over", "Under",
+  ],
+  nfl: [
+    "Home Win", "Away Win",
+    "Home Spread", "Away Spread",
+    "Over", "Under",
+  ],
+  mlb: [
+    "Home Win", "Away Win",
+    "Home Spread", "Away Spread",
+    "Over", "Under",
+  ],
+  nhl: [
+    "Home Win", "Away Win",
+    "Over", "Under",
+  ],
+  mma: [
+    "Fighter 1", "Fighter 2",
+    "Over Rounds", "Under Rounds",
+    "KO/TKO", "Submission", "Decision",
+  ],
+  boxing: [
+    "Fighter 1", "Fighter 2", "Draw",
+    "Over Rounds", "Under Rounds",
+    "KO/TKO", "Decision",
+  ],
+  tennis: [
+    "Player 1", "Player 2",
+    "Over Sets", "Under Sets",
+    "Over Games", "Under Games",
+  ],
+};
+
 export const RESULT_STYLES = {
   pending: { bg: "bg-text-muted/20", text: "text-text-muted", label: "Pending" },
   win: { bg: "bg-primary/20", text: "text-primary", label: "Win" },

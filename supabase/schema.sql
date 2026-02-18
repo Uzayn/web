@@ -20,7 +20,7 @@ CREATE TABLE picks (
   league TEXT,
   matchup TEXT NOT NULL,
   selection TEXT NOT NULL,
-  odds DECIMAL NOT NULL,
+  odds DECIMAL,
   stake DECIMAL DEFAULT 1,
   confidence TEXT DEFAULT 'medium' CHECK (confidence IN ('low', 'medium', 'high')),
   analysis TEXT,

@@ -8,9 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
-import { SPORTS, CONFIDENCE_LEVELS } from "@/lib/utils";
+import { SPORTS, CONFIDENCE_LEVELS, SELECTION_PRESETS } from "@/lib/utils";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+
+interface FixtureSelection {
+  name: string;
+  odds: number;
+}
 
 interface Fixture {
   league: string;
@@ -18,6 +23,7 @@ interface Fixture {
   homeTeam: string;
   awayTeam: string;
   eventDate: string;
+  selections: FixtureSelection[];
 }
 
 export default function NewPickPage() {
@@ -29,12 +35,14 @@ export default function NewPickPage() {
   const [loadingFixtures, setLoadingFixtures] = useState(false);
   const [fixtureError, setFixtureError] = useState(false);
   const [manualMode, setManualMode] = useState(false);
+  const [selectedFixture, setSelectedFixture] = useState<Fixture | null>(null);
 
   const [formData, setFormData] = useState({
     sport: "soccer",
     league: "",
     matchup: "",
     selection: "",
+    odds: "",
     confidence: "medium",
     analysis: "",
     is_vip: false,
@@ -77,12 +85,23 @@ export default function NewPickPage() {
       .toISOString()
       .slice(0, 16);
 
+    setSelectedFixture(fixture);
     setFormData((prev) => ({
       ...prev,
       sport,
       league: fixture.league,
       matchup: `${fixture.homeTeam} vs ${fixture.awayTeam}`,
       event_date: dtLocal,
+      selection: "",
+      odds: "",
+    }));
+  };
+
+  const selectSelection = (name: string, odds?: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      selection: name,
+      odds: odds != null ? String(odds) : prev.odds,
     }));
   };
 
@@ -111,7 +130,7 @@ export default function NewPickPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
-          odds: null,
+          odds: formData.odds ? parseFloat(formData.odds) : null,
           stake: 1,
         }),
       });
@@ -137,6 +156,14 @@ export default function NewPickPage() {
     return acc;
   }, {});
 
+  // Get preset selections for the current sport (excluding any that match API selection names)
+  const apiSelectionNames = new Set(
+    (selectedFixture?.selections ?? []).map((s) => s.name)
+  );
+  const presets = (SELECTION_PRESETS[sport] ?? []).filter(
+    (p) => !apiSelectionNames.has(p)
+  );
+
   return (
     <div className="max-w-2xl mx-auto">
       <Link
@@ -161,6 +188,7 @@ export default function NewPickPage() {
               onChange={(e) => {
                 setSport(e.target.value);
                 setFormData((prev) => ({ ...prev, sport: e.target.value }));
+                setSelectedFixture(null);
               }}
               options={SPORTS.map((s) => ({ value: s.value, label: s.label }))}
             />
@@ -245,6 +273,11 @@ export default function NewPickPage() {
                                   { hour: "2-digit", minute: "2-digit" }
                                 )}
                               </span>
+                              {fixture.selections.length > 0 && (
+                                <span className="text-primary/60 text-xs ml-2">
+                                  · odds available
+                                </span>
+                              )}
                             </button>
                           );
                         })}
@@ -304,14 +337,78 @@ export default function NewPickPage() {
               required
             />
 
-            <Input
-              label="Selection"
-              name="selection"
-              value={formData.selection}
-              onChange={handleChange}
-              placeholder="e.g., Over 2.5, Home Win, Lakers +4.5"
-              required
-            />
+            {/* Selection chips from API odds */}
+            {selectedFixture && selectedFixture.selections.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-1.5">
+                  Quick Selection
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {selectedFixture.selections.map((s) => (
+                    <button
+                      key={s.name}
+                      type="button"
+                      onClick={() => selectSelection(s.name, s.odds)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        formData.selection === s.name
+                          ? "bg-primary/10 text-primary border-primary/30"
+                          : "bg-surface-hover text-text-primary border-border hover:border-primary/30"
+                      }`}
+                    >
+                      {s.name}{" "}
+                      <span className="text-text-muted">@ {s.odds.toFixed(2)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Preset selection chips */}
+            {presets.length > 0 && (
+              <div>
+                {!(selectedFixture && selectedFixture.selections.length > 0) && (
+                  <label className="block text-sm font-medium text-text-primary mb-1.5">
+                    Quick Selection
+                  </label>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {presets.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => selectSelection(p)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                        formData.selection === p
+                          ? "bg-primary/10 text-primary border-primary/30"
+                          : "bg-background text-text-muted border-border hover:border-primary/30 hover:text-text-primary"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Selection"
+                name="selection"
+                value={formData.selection}
+                onChange={handleChange}
+                placeholder="e.g., Over 2.5, Home Win"
+                required
+              />
+              <Input
+                label="Odds"
+                name="odds"
+                type="number"
+                step="0.01"
+                value={formData.odds}
+                onChange={handleChange}
+                placeholder="Auto-filled from selection"
+              />
+            </div>
 
             <Select
               label="Confidence"
