@@ -28,8 +28,8 @@ export function PickCard({ pick }: PickCardProps) {
           <span className="text-xs text-text-muted uppercase tracking-wide md:w-1/3 lg:w-1/4 shrink-0">
             {pick.league || pick.sport}
           </span>
-          <div className="flex items-center justify-between gap-4 flex-1 min-w-0">
-            <span className="text-sm font-semibold text-text-primary truncate">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <span className="text-sm font-semibold text-text-primary truncate flex-1">
               {pick.matchup}
             </span>
             <span className="text-sm font-medium text-primary shrink-0">
@@ -69,8 +69,8 @@ export function PickCardLocked({ pick }: PickCardLockedProps) {
           <span className="text-xs text-text-muted md:w-1/3 lg:w-1/4 shrink-0">
             {pick.league || pick.sport}
           </span>
-          <div className="flex items-center justify-between gap-4 flex-1 min-w-0">
-            <span className="text-sm text-text-primary truncate">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            <span className="text-sm text-text-primary truncate flex-1">
               {pick.matchup}
             </span>
             <span className="w-16 h-4 bg-border rounded shrink-0" />
