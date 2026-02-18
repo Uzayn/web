@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { Breadcrumbs } from "@/components/seo/breadcrumbs";
@@ -10,41 +11,34 @@ import { Button } from "@/components/ui/button";
 import { ResultBadge } from "@/components/features/result-badge";
 import { ConfidenceMeter } from "@/components/features/confidence-meter";
 import { formatDateTime, SPORTS } from "@/lib/utils";
+import { Pick } from "@/types";
 import { Calendar, TrendingUp, Lock } from "lucide-react";
+import { createServiceClient } from "@/lib/supabase/server";
 
-// This would be fetched from API based on ID
-const mockPick = {
-  id: "1",
-  sport: "nba",
-  league: "NBA",
-  matchup: "Lakers vs Celtics",
-  selection: "Lakers +4.5",
-  odds: 1.91,
-  stake: 1,
-  confidence: "high" as const,
-  analysis: `The Lakers come into this matchup with momentum after winning 4 of their last 5 games. Key factors to consider:
+async function getPick(id: string): Promise<Pick | null> {
+  const supabase = createServiceClient();
+  const { data, error } = await supabase
+    .from("picks")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-• LeBron James has been averaging 28.5 points in his last 10 games against Boston
-• The Celtics are on a back-to-back and showed fatigue in their last game
-• Historical data shows the Lakers cover the spread 70% of the time as home underdogs
-• AD is questionable but expected to play, which will boost their defensive efficiency
-
-The line has moved from +5.5 to +4.5, indicating sharp money on the Lakers. We see value at +4.5 and recommend a full unit play.`,
-  is_vip: false,
-  result: "win" as const,
-  profit_loss: 0.91,
-  event_date: new Date().toISOString(),
-  settled_at: new Date().toISOString(),
-  created_at: new Date().toISOString(),
-};
+  if (error || !data) return null;
+  return data as Pick;
+}
 
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  // In production, fetch the pick from the API/DB
-  const pick = mockPick;
+  const { id } = await params;
+  const pick = await getPick(id);
+
+  if (!pick) {
+    return { title: "Pick Not Found" };
+  }
+
   const title = `${pick.matchup} Prediction & Betting Tips`;
   const description = `Expert prediction and betting analysis for ${pick.matchup}. Get our ${pick.confidence} confidence pick${pick.odds != null ? ` with odds of ${pick.odds}` : ""} and detailed breakdown.`;
 
@@ -54,7 +48,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: `https://winpicks.online/picks/${params.id}`,
+      url: `https://winpicks.online/picks/${id}`,
       type: "article",
     },
     twitter: {
@@ -62,15 +56,25 @@ export async function generateMetadata({
       description,
     },
     alternates: {
-      canonical: `https://winpicks.online/picks/${params.id}`,
+      canonical: `https://winpicks.online/picks/${id}`,
     },
   };
 }
 
-export default function PickDetailPage({ params }: { params: { id: string } }) {
+export default async function PickDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const pick = await getPick(id);
+
+  if (!pick) {
+    notFound();
+  }
+
   // In production, check if user has VIP access
   const isVip = false;
-  const pick = mockPick;
 
   const sportLabel =
     SPORTS.find((s) => s.value === pick.sport)?.label || pick.sport;
@@ -90,7 +94,7 @@ export default function PickDetailPage({ params }: { params: { id: string } }) {
             <Breadcrumbs
               items={[
                 { label: "Picks", href: "/picks" },
-                { label: pick.matchup, href: `/picks/${params.id}` },
+                { label: pick.matchup, href: `/picks/${id}` },
               ]}
             />
 
@@ -126,7 +130,7 @@ export default function PickDetailPage({ params }: { params: { id: string } }) {
           <Breadcrumbs
             items={[
               { label: "Picks", href: "/picks" },
-              { label: pick.matchup, href: `/picks/${params.id}` },
+              { label: pick.matchup, href: `/picks/${id}` },
             ]}
           />
 
@@ -136,7 +140,7 @@ export default function PickDetailPage({ params }: { params: { id: string } }) {
               awayTeam={awayTeam}
               date={pick.event_date}
               description={`Expert prediction for ${pick.matchup}: ${pick.selection}${pick.odds != null ? ` at odds ${pick.odds}` : ""}`}
-              url={`https://winpicks.online/picks/${params.id}`}
+              url={`https://winpicks.online/picks/${id}`}
             />
           )}
 

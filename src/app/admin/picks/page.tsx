@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ResultBadge } from "@/components/features/result-badge";
 import { formatDateTime, SPORTS } from "@/lib/utils";
 import { Pick } from "@/types";
-import { Plus, Search, CheckCircle, XCircle, MinusCircle, RefreshCw } from "lucide-react";
+import { Plus, Search, CheckCircle, XCircle, MinusCircle, RefreshCw, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminPicksPage() {
@@ -161,31 +161,36 @@ export default function AdminPicksPage() {
                   <span className="text-text-muted">
                     {pick.odds != null ? `${pick.odds} • ` : ""}{formatDateTime(pick.event_date)}
                   </span>
-                  {pick.result === "pending" && (
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleSettle(pick.id, "win")}
-                        className="p-2 rounded hover:bg-primary/20 text-primary"
-                        title="Mark Win"
-                      >
-                        <CheckCircle className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleSettle(pick.id, "loss")}
-                        className="p-2 rounded hover:bg-danger/20 text-danger"
-                        title="Mark Loss"
-                      >
-                        <XCircle className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleSettle(pick.id, "push")}
-                        className="p-2 rounded hover:bg-surface text-text-muted"
-                        title="Mark Push"
-                      >
-                        <MinusCircle className="w-5 h-5" />
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1">
+                    <Link
+                      href={`/admin/picks/${pick.id}/edit`}
+                      className="p-2 rounded hover:bg-surface text-text-muted"
+                      title="Edit Pick"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => handleSettle(pick.id, "win")}
+                      className={`p-2 rounded hover:bg-primary/20 text-primary ${pick.result !== "pending" ? "opacity-40" : ""}`}
+                      title="Mark Win"
+                    >
+                      <CheckCircle className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleSettle(pick.id, "loss")}
+                      className={`p-2 rounded hover:bg-danger/20 text-danger ${pick.result !== "pending" ? "opacity-40" : ""}`}
+                      title="Mark Loss"
+                    >
+                      <XCircle className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleSettle(pick.id, "push")}
+                      className={`p-2 rounded hover:bg-surface text-text-muted ${pick.result !== "pending" ? "opacity-40" : ""}`}
+                      title="Mark Push"
+                    >
+                      <MinusCircle className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -259,31 +264,34 @@ export default function AdminPicksPage() {
                         </td>
                         <td className="py-3 px-2">
                           <div className="flex items-center justify-end gap-1">
-                            {pick.result === "pending" && (
-                              <>
-                                <button
-                                  onClick={() => handleSettle(pick.id, "win")}
-                                  className="p-1.5 rounded hover:bg-primary/20 text-primary"
-                                  title="Mark Win"
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleSettle(pick.id, "loss")}
-                                  className="p-1.5 rounded hover:bg-danger/20 text-danger"
-                                  title="Mark Loss"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => handleSettle(pick.id, "push")}
-                                  className="p-1.5 rounded hover:bg-surface text-text-muted"
-                                  title="Mark Push"
-                                >
-                                  <MinusCircle className="w-4 h-4" />
-                                </button>
-                              </>
-                            )}
+                            <Link
+                              href={`/admin/picks/${pick.id}/edit`}
+                              className="p-1.5 rounded hover:bg-surface text-text-muted"
+                              title="Edit Pick"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </Link>
+                            <button
+                              onClick={() => handleSettle(pick.id, "win")}
+                              className={`p-1.5 rounded hover:bg-primary/20 text-primary ${pick.result !== "pending" ? "opacity-40" : ""}`}
+                              title="Mark Win"
+                            >
+                              <CheckCircle className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleSettle(pick.id, "loss")}
+                              className={`p-1.5 rounded hover:bg-danger/20 text-danger ${pick.result !== "pending" ? "opacity-40" : ""}`}
+                              title="Mark Loss"
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleSettle(pick.id, "push")}
+                              className={`p-1.5 rounded hover:bg-surface text-text-muted ${pick.result !== "pending" ? "opacity-40" : ""}`}
+                              title="Mark Push"
+                            >
+                              <MinusCircle className="w-4 h-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
