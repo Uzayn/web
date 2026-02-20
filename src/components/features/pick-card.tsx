@@ -57,10 +57,10 @@ export function PickCard({ pick }: PickCardProps) {
 }
 
 interface PickCardLockedProps {
-  pick: Pick;
+  pick?: Pick;
 }
 
-export function PickCardLocked({ pick: _pick }: PickCardLockedProps) {
+export function PickCardLocked({}: PickCardLockedProps) {
   return (
     <Link href="/vip">
       <Card hover className="!py-2.5 !px-3">

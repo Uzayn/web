@@ -5,7 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { PricingCard } from "@/components/features/pricing-card";
-import { TestimonialCard } from "@/components/features/testimonial-card";
+// import { TestimonialCard } from "@/components/features/testimonial-card";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,26 +43,6 @@ const yearlyFeatures = [
   "Exclusive yearly member perks",
 ];
 
-const testimonials = [
-  {
-    name: "Michael T.",
-    text: "Been a VIP member for 6 months. The analysis is top-notch and the transparency in track record builds real trust. My bankroll has grown 40%.",
-    rating: 5,
-    memberSince: "Aug 2024",
-  },
-  {
-    name: "Sarah K.",
-    text: "Finally found a picks service that shows their actual results. The ROI speaks for itself. Worth every penny of the subscription.",
-    rating: 5,
-    memberSince: "Oct 2024",
-  },
-  {
-    name: "James R.",
-    text: "The detailed analysis helps me understand the reasoning behind each pick. I've learned so much about sports betting in just 3 months.",
-    rating: 5,
-    memberSince: "Sep 2024",
-  },
-];
 
 const faqs = [
   {
