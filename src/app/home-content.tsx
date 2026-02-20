@@ -17,7 +17,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toDateString } from "@/lib/utils";
-import { Pick, Stats } from "@/types";
+import { Pick, Stats, Bundle } from "@/types";
+import { BundleCard, BundleCardLocked } from "@/components/features/bundle-card";
 import {
   TrendingUp,
   Shield,
@@ -59,6 +60,8 @@ export function HomeContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [bundlesLoading, setBundlesLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/user/status")
@@ -76,6 +79,14 @@ export function HomeContent() {
       })
       .catch(() => {})
       .finally(() => setStatsLoading(false));
+
+    fetch("/api/bundles")
+      .then((res) => res.json())
+      .then((data) => {
+        setBundles(data.bundles || []);
+      })
+      .catch(() => {})
+      .finally(() => setBundlesLoading(false));
   }, []);
 
   const fetchPicks = useCallback(async () => {
@@ -135,6 +146,22 @@ export function HomeContent() {
               isVip={isVip}
               isLoading={isLoading}
             />
+
+            {/* Bundles Section */}
+            {!bundlesLoading && bundles.length > 0 && (
+              <div className="space-y-2">
+                <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wide">
+                  VIP Bundles
+                </h2>
+                {bundles.map((bundle) =>
+                  isVip ? (
+                    <BundleCard key={bundle.id} bundle={bundle} />
+                  ) : (
+                    <BundleCardLocked key={bundle.id} bundle={bundle} />
+                  )
+                )}
+              </div>
+            )}
           </div>
         </section>
 

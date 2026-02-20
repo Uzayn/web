@@ -7,24 +7,27 @@ import { PickCard, PickCardLocked } from "@/components/features/pick-card";
 import { StatsBar } from "@/components/features/stats-bar";
 import { SportFilter } from "@/components/features/sport-filter";
 import { PickCardSkeleton } from "@/components/ui/skeleton";
-import { Pick, Stats } from "@/types";
+import { Pick, Stats, Bundle } from "@/types";
+import { BundleCard, BundleCardLocked } from "@/components/features/bundle-card";
 
 export function PicksContent() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [selectedSport, setSelectedSport] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
-
-  // In production, this would check user's subscription status
-  const isVip = false;
+  const [isVip, setIsVip] = useState(false);
+  const [bundles, setBundles] = useState<Bundle[]>([]);
+  const [bundlesLoading, setBundlesLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const [picksRes, statsRes] = await Promise.all([
+        const [picksRes, statsRes, statusRes, bundlesRes] = await Promise.all([
           fetch("/api/picks?includeVip=true"),
           fetch("/api/stats"),
+          fetch("/api/user/status"),
+          fetch("/api/bundles"),
         ]);
 
         if (picksRes.ok) {
@@ -36,10 +39,21 @@ export function PicksContent() {
           const statsData = await statsRes.json();
           setStats(statsData.overall || null);
         }
+
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          setIsVip(statusData.isVip || false);
+        }
+
+        if (bundlesRes.ok) {
+          const bundlesData = await bundlesRes.json();
+          setBundles(bundlesData.bundles || []);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
+        setBundlesLoading(false);
       }
     }
 
@@ -79,6 +93,22 @@ export function PicksContent() {
           <div className="mb-6">
             <SportFilter selected={selectedSport} onChange={setSelectedSport} />
           </div>
+
+          {/* Bundles Section */}
+          {!bundlesLoading && bundles.length > 0 && (
+            <div className="mb-6 space-y-2">
+              <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wide">
+                VIP Bundles
+              </h2>
+              {bundles.map((bundle) =>
+                isVip ? (
+                  <BundleCard key={bundle.id} bundle={bundle} />
+                ) : (
+                  <BundleCardLocked key={bundle.id} bundle={bundle} />
+                )
+              )}
+            </div>
+          )}
 
           {isLoading ? (
             <div className="flex flex-col gap-2">

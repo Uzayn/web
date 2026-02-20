@@ -66,3 +66,27 @@ export interface Stats {
 export interface SportStats extends Stats {
   sport: string;
 }
+
+export interface BundleItem {
+  id: string;
+  bundle_id: string;
+  sport: string;
+  league: string | null;
+  matchup: string;
+  selection: string;
+  odds: number;
+  event_date: string;
+  result: PickResult;
+  order_index: number;
+  created_at: string;
+}
+
+export interface Bundle {
+  id: string;
+  title: string;
+  description: string | null;
+  total_odds: number;
+  result: PickResult;
+  created_at: string;
+  items?: BundleItem[];
+}

@@ -13,12 +13,16 @@ import {
   ArrowLeft,
   Menu,
   X,
+  Layers,
+  PlusSquare,
 } from "lucide-react";
 
 const adminLinks = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/picks", label: "Picks", icon: FileText },
   { href: "/admin/picks/new", label: "Add Pick", icon: Plus },
+  { href: "/admin/bundles", label: "Bundles", icon: Layers },
+  { href: "/admin/bundles/new", label: "Add Bundle", icon: PlusSquare },
   { href: "/admin/users", label: "Users", icon: Users },
 ];
 

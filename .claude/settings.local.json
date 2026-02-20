@@ -5,7 +5,11 @@
       "Bash(npm run build:*)",
       "Bash(npx supabase status)",
       "Bash(npx supabase:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Bash(npx tsc:*)",
+      "Bash(supabase status:*)",
+      "Bash(PGPASSWORD=postgres npx supabase db diff:*)",
+      "Bash(PGPASSWORD=postgres psql:*)"
     ]
   }
 }
