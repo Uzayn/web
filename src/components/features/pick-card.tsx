@@ -23,7 +23,10 @@ export function PickCard({ pick }: PickCardProps) {
 
   return (
     <Link href={`/picks/${pick.id}`}>
-      <Card hover className="!py-2.5 !px-3">
+      <Card
+        hover
+        className={`!py-2.5 !px-3 ${pick.is_vip ? "border-secondary/50" : ""}`}
+      >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1 md:gap-4">
           <span className="text-xs text-text-muted uppercase tracking-wide md:w-1/3 lg:w-1/4 shrink-0">
             {pick.league || pick.sport}
@@ -57,23 +60,23 @@ interface PickCardLockedProps {
   pick: Pick;
 }
 
-export function PickCardLocked({ pick }: PickCardLockedProps) {
+export function PickCardLocked({ pick: _pick }: PickCardLockedProps) {
   return (
     <Link href="/vip">
-      <Card hover className="!py-2.5 !px-3 relative overflow-hidden">
-        <div className="absolute inset-0 backdrop-blur-sm bg-surface/80 z-10 flex items-center justify-center gap-2">
-          <Lock className="w-3.5 h-3.5 text-secondary" />
-          <span className="font-medium text-text-primary text-sm">VIP Pick</span>
-        </div>
-        <div className="opacity-30 flex flex-col md:flex-row md:items-center md:justify-between gap-1 md:gap-4">
-          <span className="text-xs text-text-muted md:w-1/3 lg:w-1/4 shrink-0">
-            {pick.league || pick.sport}
-          </span>
+      <Card hover className="!py-2.5 !px-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1 md:gap-4">
+          {/* Mirrors league/sport slot */}
+          <div className="flex items-center gap-1.5 text-xs text-secondary uppercase tracking-wide md:w-1/3 lg:w-1/4 shrink-0">
+            <Lock className="w-3 h-3" />
+            <span>VIP Pick</span>
+          </div>
+          {/* Mirrors matchup + selection + result dot slots */}
           <div className="flex items-center gap-4 flex-1 min-w-0">
-            <span className="text-sm text-text-primary truncate flex-1">
-              {pick.matchup}
+            <span className="flex-1 min-w-0">
+              <span className="h-2.5 bg-border rounded block w-32" />
             </span>
-            <span className="w-16 h-4 bg-border rounded shrink-0" />
+            <span className="h-2.5 bg-border rounded w-14 shrink-0" />
+            <span className="w-2.5 h-2.5 rounded-full bg-border shrink-0" />
           </div>
         </div>
       </Card>

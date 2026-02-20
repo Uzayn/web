@@ -19,7 +19,6 @@ import {
 import {
   Trophy,
   TrendingUp,
-  Users,
   Bell,
   BarChart3,
   MessageCircle,
@@ -175,7 +174,7 @@ export function VIPContent() {
         {/* Stats */}
         <section className="py-8 px-4 bg-surface/50">
           <div className="container mx-auto max-w-4xl">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
               <Card className="p-4 text-center">
                 <TrendingUp className="w-6 h-6 text-primary mx-auto mb-2" />
                 {isLoading ? (
@@ -197,30 +196,6 @@ export function VIPContent() {
                   </p>
                 )}
                 <p className="text-xs text-text-muted">ROI</p>
-              </Card>
-              <Card className="p-4 text-center">
-                <Trophy className="w-6 h-6 text-primary mx-auto mb-2" />
-                {isLoading ? (
-                  <Skeleton className="h-8 w-14 mx-auto mb-1" />
-                ) : (
-                  <p className="text-2xl font-bold text-text-primary">
-                    {stats?.unitsProfit !== undefined
-                      ? `${stats.unitsProfit > 0 ? "+" : ""}${stats.unitsProfit.toFixed(1)}u`
-                      : "0u"}
-                  </p>
-                )}
-                <p className="text-xs text-text-muted">Units Profit</p>
-              </Card>
-              <Card className="p-4 text-center">
-                <Users className="w-6 h-6 text-secondary mx-auto mb-2" />
-                {isLoading ? (
-                  <Skeleton className="h-8 w-14 mx-auto mb-1" />
-                ) : (
-                  <p className="text-2xl font-bold text-text-primary">
-                    {stats?.totalPicks || 0}
-                  </p>
-                )}
-                <p className="text-xs text-text-muted">Total Picks</p>
               </Card>
             </div>
           </div>
@@ -309,7 +284,7 @@ export function VIPContent() {
           </div>
         </section>
 
-        {/* Testimonials */}
+        {/* Testimonials — uncomment when real testimonials are available
         <section className="py-16 px-4">
           <div className="container mx-auto max-w-5xl">
             <h2 className="text-2xl md:text-3xl font-bold text-center text-text-primary mb-12">
@@ -323,6 +298,7 @@ export function VIPContent() {
             </div>
           </div>
         </section>
+        */}
 
         {/* FAQ */}
         <section className="py-16 px-4 bg-surface/50">

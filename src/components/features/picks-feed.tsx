@@ -64,7 +64,7 @@ export function PicksFeed({ picks, isVip, isLoading }: PicksFeedProps) {
           </h2>
           <div className="flex flex-col gap-2">
             {vipPicks.map((pick) =>
-              isVip ? (
+              isVip || pick.result !== "pending" ? (
                 <PickCard key={pick.id} pick={pick} />
               ) : (
                 <PickCardLocked key={pick.id} pick={pick} />

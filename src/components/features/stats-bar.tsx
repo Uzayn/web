@@ -1,4 +1,4 @@
-import { TrendingUp, Target, Percent, Trophy } from "lucide-react";
+import { TrendingUp, Percent } from "lucide-react";
 
 interface StatsBarProps {
   totalPicks: number;
@@ -7,14 +7,8 @@ interface StatsBarProps {
   unitsProfit: number;
 }
 
-export function StatsBar({ totalPicks, winRate, roi, unitsProfit }: StatsBarProps) {
+export function StatsBar({ winRate, roi }: StatsBarProps) {
   const stats = [
-    {
-      label: "Total Picks",
-      value: totalPicks.toString(),
-      icon: Target,
-      color: "text-text-primary",
-    },
     {
       label: "Win Rate",
       value: `${winRate}%`,
@@ -27,17 +21,11 @@ export function StatsBar({ totalPicks, winRate, roi, unitsProfit }: StatsBarProp
       icon: TrendingUp,
       color: roi > 0 ? "text-primary" : roi < 0 ? "text-danger" : "text-text-muted",
     },
-    {
-      label: "Units Profit",
-      value: `${unitsProfit > 0 ? "+" : ""}${unitsProfit.toFixed(1)}u`,
-      icon: Trophy,
-      color: unitsProfit > 0 ? "text-secondary" : unitsProfit < 0 ? "text-danger" : "text-text-muted",
-    },
   ];
 
   return (
     <div className="bg-surface border border-border rounded-xl p-4">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (

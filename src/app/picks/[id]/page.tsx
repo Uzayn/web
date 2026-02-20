@@ -84,8 +84,9 @@ export default async function PickDetailPage({
   const homeTeam = teams[0] || pick.matchup;
   const awayTeam = teams[1] || "";
 
-  // If VIP pick and user is not VIP, show gated content
-  if (pick.is_vip && !isVip) {
+  // Gate VIP picks only while pending — once settled, all users can see the result
+  const isSettled = pick.result !== "pending";
+  if (pick.is_vip && !isVip && !isSettled) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -142,6 +143,19 @@ export default async function PickDetailPage({
               description={`Expert prediction for ${pick.matchup}: ${pick.selection}${pick.odds != null ? ` at odds ${pick.odds}` : ""}`}
               url={`https://winpicks.online/picks/${id}`}
             />
+          )}
+
+          {pick.is_vip && !isVip && (
+            <div className="flex items-center justify-between bg-secondary/10 border border-secondary/30 rounded-lg px-4 py-3 mb-4">
+              <p className="text-sm text-text-muted">
+                This was a VIP pick. Get live access to premium picks before they settle.
+              </p>
+              <Link href="/vip">
+                <Button size="sm" variant="outline">
+                  Go VIP
+                </Button>
+              </Link>
+            </div>
           )}
 
           <Card className="p-6">

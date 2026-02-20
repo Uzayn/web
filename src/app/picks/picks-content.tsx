@@ -81,15 +81,15 @@ export function PicksContent() {
           </div>
 
           {isLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-2">
               {[...Array(6)].map((_, i) => (
                 <PickCardSkeleton key={i} />
               ))}
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-2">
               {filteredPicks.map((pick) =>
-                pick.is_vip && !isVip ? (
+                pick.is_vip && !isVip && pick.result === "pending" ? (
                   <PickCardLocked key={pick.id} pick={pick} />
                 ) : (
                   <PickCard key={pick.id} pick={pick} />
