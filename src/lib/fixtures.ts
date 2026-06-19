@@ -1,3 +1,5 @@
+import { createServiceClient } from "@/lib/supabase/server";
+
 export interface FixtureSelection {
   name: string;
   odds: number;
@@ -35,22 +37,68 @@ interface OddsApiOddsEvent extends OddsApiEvent {
   }[];
 }
 
-// --- In-memory cache (1-hour TTL) ---
-const cache = new Map<string, { data: unknown; timestamp: number }>();
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+// Cache TTLs. Complete data (fixtures WITH odds) is trusted for a while to stay
+// under the free API limits; empty or odds-less ("partial") results expire quickly
+// so an early or transient miss never freezes permanently and missing odds get a
+// chance to fill in — without re-fetching on every single request.
+const FIXTURE_TTL_MS = 6 * 60 * 60 * 1000; // 6h: fixtures present AND odds attached
+const PARTIAL_TTL_MS = 30 * 60 * 1000; // 30m: empty list or no odds yet
+const ODDS_TTL_MS = 6 * 60 * 60 * 1000; // 6h: raw per-sport odds, shared across dates (Odds API is the tightest quota)
 
-function getCached<T>(key: string): T | null {
-  const entry = cache.get(key);
-  if (!entry) return null;
-  if (Date.now() - entry.timestamp > CACHE_TTL) {
-    cache.delete(key);
+// Generic TTL cache over the fixture_cache table (data is JSONB, so it holds any shape).
+async function getCacheRaw<T>(key: string, ttlMs: number): Promise<T | null> {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from("fixture_cache")
+      .select("data, fetched_at")
+      .eq("cache_key", key)
+      .single();
+    if (error || !data) return null;
+    if (Date.now() - new Date(data.fetched_at).getTime() > ttlMs) return null; // stale
+    return data.data as T;
+  } catch {
     return null;
   }
-  return entry.data as T;
 }
 
-function setCache(key: string, data: unknown) {
-  cache.set(key, { data, timestamp: Date.now() });
+async function setCacheRaw(key: string, value: unknown): Promise<void> {
+  try {
+    const supabase = createServiceClient();
+    await supabase
+      .from("fixture_cache")
+      .upsert({ cache_key: key, data: value, fetched_at: new Date().toISOString() });
+  } catch {
+    // ignore — cache write failure should not block the response
+  }
+}
+
+// Fixture-list cache whose freshness depends on completeness: a list that actually
+// carries odds is trusted for FIXTURE_TTL_MS; an empty or odds-less list only for
+// PARTIAL_TTL_MS, so a too-early fetch (fixtures up but odds not posted yet, or a
+// provider hiccup) is retried soon instead of being cached forever.
+async function getCache(key: string): Promise<Fixture[] | null> {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from("fixture_cache")
+      .select("data, fetched_at")
+      .eq("cache_key", key)
+      .single();
+    if (error || !data) return null;
+    const fixtures = (data.data as Fixture[]) ?? [];
+    const age = Date.now() - new Date(data.fetched_at).getTime();
+    const hasOdds = fixtures.some((f) => f.selections && f.selections.length > 0);
+    const ttl = fixtures.length > 0 && hasOdds ? FIXTURE_TTL_MS : PARTIAL_TTL_MS;
+    if (age > ttl) return null; // stale → caller refetches
+    return fixtures;
+  } catch {
+    return null;
+  }
+}
+
+async function setCache(key: string, fixtures: Fixture[]): Promise<void> {
+  await setCacheRaw(key, fixtures);
 }
 
 const ODDS_API_SPORT_KEYS: Record<string, string> = {
@@ -70,6 +118,7 @@ const SOCCER_ODDS_KEYS = [
   "soccer_germany_bundesliga",
   "soccer_france_ligue_one",
   "soccer_uefa_champs_league",
+  "soccer_fifa_world_cup",
 ];
 
 // API-Football league IDs for top leagues — these get sorted to the top
@@ -111,9 +160,13 @@ function extractSelections(event: OddsApiOddsEvent): FixtureSelection[] {
 }
 
 async function fetchOddsForSport(sportKey: string): Promise<OddsApiOddsEvent[]> {
-  const cacheKey = `odds:${sportKey}`;
-  const cached = getCached<OddsApiOddsEvent[]>(cacheKey);
-  if (cached) return cached;
+  // The Odds API returns the same upcoming odds for a league regardless of which
+  // date the admin is viewing, so cache per-league and share across dates. This is
+  // the biggest saver of the limited monthly Odds API quota — without it, every new
+  // date re-fetched all league odds from scratch.
+  const cacheKey = `odds::${sportKey}`;
+  const cached = await getCacheRaw<OddsApiOddsEvent[]>(cacheKey, ODDS_TTL_MS);
+  if (cached !== null) return cached;
 
   const apiKey = process.env.ODDS_API_KEY;
   if (!apiKey) return [];
@@ -127,10 +180,10 @@ async function fetchOddsForSport(sportKey: string): Promise<OddsApiOddsEvent[]> 
       { signal: controller.signal }
     ).finally(() => clearTimeout(timeout));
 
-    if (!res.ok) return [];
+    if (!res.ok) return []; // don't cache failures — retry on the next request
 
-    const events: OddsApiOddsEvent[] = await res.json();
-    setCache(cacheKey, events);
+    const events = (await res.json()) as OddsApiOddsEvent[];
+    setCacheRaw(cacheKey, events); // fire-and-forget
     return events;
   } catch {
     return [];
@@ -230,8 +283,16 @@ export async function fetchFixtures(
   sport: string,
   date: string
 ): Promise<Fixture[]> {
-  if (sport === "soccer") {
-    return fetchSoccerFixtures(date);
-  }
-  return fetchOddsApiFixtures(sport);
+  const key = `${sport}::${date}`;
+
+  const cached = await getCache(key);
+  if (cached !== null) return cached; // fresh hit (incl. a recently-cached empty list)
+
+  const result =
+    sport === "soccer"
+      ? await fetchSoccerFixtures(date)
+      : await fetchOddsApiFixtures(sport);
+
+  setCache(key, result); // fire-and-forget
+  return result;
 }

@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS fixture_cache (
+  cache_key TEXT PRIMARY KEY,
+  data JSONB NOT NULL,
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
