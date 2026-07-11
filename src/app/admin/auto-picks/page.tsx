@@ -129,6 +129,9 @@ export default function AutoPicksPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to publish");
       toast.success(`Published ${data.published} pick(s) to the site.`);
+      if (data.skipped > 0) {
+        toast.info(`${data.skipped} already published — skipped.`);
+      }
       // Drop the published ones from the review list
       setDrafts((prev) => prev.filter((d) => !d.included));
     } catch (e) {

@@ -214,6 +214,8 @@ export async function POST(request: NextRequest) {
       is_vip: d.is_vip || false,
       event_date: d.event_date,
       result: "pending",
+      // Dedupe key: re-publishing the same bai prediction is a no-op.
+      bai_pick_id: d.bai_id ?? null,
     }));
 
     // Guard: every pick needs the NOT NULL columns (matchup, selection, event_date).
@@ -226,14 +228,21 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServiceClient();
-    const { data, error } = await supabase.from("picks").insert(rows).select();
+    const { data, error } = await supabase
+      .from("picks")
+      .upsert(rows, { onConflict: "bai_pick_id", ignoreDuplicates: true })
+      .select();
 
     if (error) {
       console.error("Bulk publish error:", error);
       return NextResponse.json({ error: "Failed to publish picks" }, { status: 500 });
     }
 
-    return NextResponse.json({ published: data?.length ?? 0, picks: data }, { status: 201 });
+    const published = data?.length ?? 0;
+    return NextResponse.json(
+      { published, skipped: rows.length - published, picks: data },
+      { status: 201 }
+    );
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });

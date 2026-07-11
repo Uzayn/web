@@ -35,7 +35,7 @@ export interface PickDraft {
   analysis: string | null;
   is_vip: boolean;
   event_date: string;
-  // carried through for de-duping / UI keys; not persisted to the picks table
+  // persisted as picks.bai_pick_id — the publish dedupe key (and a UI key)
   bai_id: number;
   prediction_type: string;
   confidence_score: number;
