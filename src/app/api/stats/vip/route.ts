@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { ensureUser } from "@/lib/users";
 
 export async function GET() {
   try {
@@ -12,18 +13,10 @@ export async function GET() {
 
     const supabase = createServiceClient();
 
-    // Check user's subscription status
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .select("subscription_status")
-      .eq("clerk_id", userId)
-      .single();
+    // Check user's subscription status (creating the row on first sight)
+    const user = await ensureUser(userId);
 
-    if (userError || !user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    if (user.subscription_status !== "vip") {
+    if (!user || user.subscription_status !== "vip") {
       return NextResponse.json(
         { error: "VIP subscription required" },
         { status: 403 }

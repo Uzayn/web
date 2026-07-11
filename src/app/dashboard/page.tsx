@@ -11,6 +11,7 @@ import { StatsBar } from "@/components/features/stats-bar";
 import { Pick, Stats } from "@/types";
 import { Crown, Lock, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { ensureUser } from "@/lib/users";
 
 async function getVipPicks(): Promise<Pick[]> {
   const supabase = await createClient();
@@ -57,13 +58,10 @@ export default async function DashboardPage() {
     redirect("/sign-in");
   }
 
-  // Check subscription status from database
-  const supabase = await createClient();
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("subscription_status")
-    .eq("clerk_id", userId)
-    .single();
+  // Check subscription status from database (creating the row on first
+  // sight). Must go through the service client: the users table's RLS only
+  // grants the service role, so an anon-client read always comes back empty.
+  const dbUser = await ensureUser(userId);
 
   const isVip = dbUser?.subscription_status === "vip";
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { ensureUser } from "@/lib/users";
 
 export async function POST() {
   try {
@@ -13,13 +14,9 @@ export async function POST() {
     const supabase = createServiceClient();
 
     // Get user's subscription
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .select("id")
-      .eq("clerk_id", userId)
-      .single();
+    const user = await ensureUser(userId);
 
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 

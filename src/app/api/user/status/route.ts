@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { createServiceClient } from "@/lib/supabase/server";
+import { ensureUser } from "@/lib/users";
 
 export async function GET() {
   try {
@@ -10,12 +10,7 @@ export async function GET() {
       return NextResponse.json({ status: "free", isVip: false });
     }
 
-    const supabase = createServiceClient();
-    const { data: user } = await supabase
-      .from("users")
-      .select("subscription_status")
-      .eq("clerk_id", userId)
-      .single();
+    const user = await ensureUser(userId);
 
     if (!user) {
       return NextResponse.json({ status: "free", isVip: false });

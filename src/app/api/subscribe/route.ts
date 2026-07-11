@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { ensureUser } from "@/lib/users";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,6 +9,16 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // The Paystack webhook finds the buyer by email in the users table, so the
+    // row must exist before checkout is initialized.
+    const dbUser = await ensureUser(userId);
+    if (!dbUser) {
+      return NextResponse.json(
+        { error: "Could not resolve user account" },
+        { status: 500 }
+      );
     }
 
     const body = await request.json();
@@ -25,13 +36,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const email = user.primaryEmailAddress?.emailAddress;
-    if (!email) {
-      return NextResponse.json(
-        { error: "No email address found" },
-        { status: 400 }
-      );
-    }
+    // Use the stored row's email: it's the key the Paystack webhook looks up.
+    const email = dbUser.email;
 
     // Initialize Paystack transaction
     const response = await fetch(
