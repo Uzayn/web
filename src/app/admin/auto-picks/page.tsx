@@ -4,27 +4,21 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { CONFIDENCE_LEVELS, formatDateTime } from "@/lib/utils";
-import type { Confidence } from "@/types";
+import {
+  DraftReviewList,
+  PublishBar,
+  type DraftState,
+} from "@/components/features/draft-review";
 import type { PickDraft } from "@/lib/bai-picks";
 import {
   ArrowLeft,
   Loader2,
   RefreshCw,
   Play,
-  Upload,
   AlertCircle,
-  Crown,
+  Crosshair,
 } from "lucide-react";
 import { toast } from "sonner";
-
-interface DraftState extends PickDraft {
-  included: boolean;
-}
 
 const POLL_MS = 3000;
 const MAX_POLLS = 100; // ~5 min ceiling
@@ -157,7 +151,13 @@ export default function AutoPicksPage() {
         <h1 className="text-2xl font-bold text-text-primary">Auto Picks</h1>
         <p className="text-sm text-text-muted mt-1">
           Run the bai prediction pipeline, review the candidates, then publish the
-          ones you want to the live site. Works from your phone.
+          ones you want to the live site. Works from your phone. For specific
+          matches in any league, use{" "}
+          <Link href="/admin/targeted" className="text-primary hover:underline">
+            <Crosshair className="w-3.5 h-3.5 inline mr-0.5" />
+            Targeted
+          </Link>
+          .
         </p>
       </div>
 
@@ -201,106 +201,17 @@ export default function AutoPicksPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {drafts.map((d, i) => (
-            <Card
-              key={`${d.bai_id}-${i}`}
-              className={d.included ? "" : "opacity-50"}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <input
-                    type="checkbox"
-                    checked={d.included}
-                    onChange={(e) => update(i, { included: e.target.checked })}
-                    className="mt-1.5 w-4 h-4 accent-primary cursor-pointer"
-                    aria-label="Include this pick"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <p className="font-semibold text-text-primary truncate">
-                        {d.matchup}
-                      </p>
-                      {d.is_vip && (
-                        <Badge className="bg-primary/20 text-primary shrink-0">
-                          <Crown className="w-3 h-3 mr-1" /> VIP
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-xs text-text-muted mb-3">
-                      {d.league || "—"} · {formatDateTime(d.event_date)} ·{" "}
-                      {Math.round(d.confidence_score * 100)}% model
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <Input
-                        label="Selection"
-                        value={d.selection}
-                        onChange={(e) => update(i, { selection: e.target.value })}
-                      />
-                      <Input
-                        label="Odds"
-                        type="number"
-                        step="0.01"
-                        value={d.odds ?? ""}
-                        onChange={(e) =>
-                          update(i, {
-                            odds: e.target.value === "" ? null : Number(e.target.value),
-                          })
-                        }
-                      />
-                      <Select
-                        label="Confidence"
-                        value={d.confidence}
-                        options={CONFIDENCE_LEVELS.map((c) => ({
-                          value: c.value,
-                          label: c.label,
-                        }))}
-                        onChange={(e) =>
-                          update(i, { confidence: e.target.value as Confidence })
-                        }
-                      />
-                      <div className="flex items-end">
-                        <label className="inline-flex items-center gap-2 text-sm text-text-primary cursor-pointer py-2">
-                          <input
-                            type="checkbox"
-                            checked={d.is_vip}
-                            onChange={(e) => update(i, { is_vip: e.target.checked })}
-                            className="w-4 h-4 accent-primary cursor-pointer"
-                          />
-                          VIP only
-                        </label>
-                      </div>
-                    </div>
-
-                    <Textarea
-                      label="Analysis"
-                      className="mt-3"
-                      rows={2}
-                      value={d.analysis ?? ""}
-                      onChange={(e) => update(i, { analysis: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <DraftReviewList drafts={drafts} onUpdate={update} />
       )}
 
       {/* Sticky publish bar */}
       {drafts.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 lg:left-64 border-t border-border bg-surface/95 backdrop-blur p-4">
-          <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
-            <span className="text-sm text-text-muted">
-              {selectedCount} of {drafts.length} selected
-            </span>
-            <Button onClick={publish} isLoading={publishing} disabled={publishing || selectedCount === 0}>
-              {!publishing && <Upload className="w-4 h-4 mr-2" />}
-              Publish {selectedCount > 0 ? selectedCount : ""}
-            </Button>
-          </div>
-        </div>
+        <PublishBar
+          selectedCount={selectedCount}
+          total={drafts.length}
+          publishing={publishing}
+          onPublish={publish}
+        />
       )}
     </div>
   );

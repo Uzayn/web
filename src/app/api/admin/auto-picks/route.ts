@@ -10,10 +10,21 @@ import { mapBaiPicks, type BaiPick, type PickDraft } from "@/lib/bai-picks";
  * which the middleware already restricts to ADMIN_USER_IDS; we re-check here too.
  *
  *   GET                  -> fetch today's bai picks, mapped to editable drafts
+ *   GET ?version=targeted -> only picks from that bai pipeline (e.g. targeted runs)
  *   GET ?status=1        -> proxy bai pipeline run status
- *   POST {action:"run"}  -> trigger the bai pipeline
+ *   POST {action:"run"}  -> trigger the bai daily pipeline
+ *   POST {action:"run-targeted", matches:[...]} -> predict a hand-typed match list
  *   POST {action:"publish", picks:[...]} -> bulk insert reviewed picks
  */
+
+/** A match as typed in the admin targeted form; mirrors bai's TargetedMatch. */
+export interface TargetedMatchInput {
+  home_team: string;
+  away_team: string;
+  league?: string;
+  match_date: string; // ISO date or datetime
+  odds?: { home?: number | null; draw?: number | null; away?: number | null };
+}
 
 async function requireAdmin(): Promise<string | NextResponse> {
   const { userId } = await auth();
@@ -109,11 +120,62 @@ export async function POST(request: NextRequest) {
   const admin = await requireAdmin();
   if (admin instanceof NextResponse) return admin;
 
-  let body: { action?: string; picks?: PickDraft[] };
+  let body: {
+    action?: string;
+    picks?: PickDraft[];
+    matches?: TargetedMatchInput[];
+  };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  // Run predictions on a hand-typed list of matches (bai targeted pipeline)
+  if (body.action === "run-targeted") {
+    if (!baiConfig()) {
+      return NextResponse.json({ error: "BAI_API_URL not configured" }, { status: 503 });
+    }
+    const matches = body.matches;
+    if (!Array.isArray(matches) || matches.length === 0) {
+      return NextResponse.json({ error: "No matches provided" }, { status: 400 });
+    }
+    const invalid = matches.find(
+      (m) => !m.home_team?.trim() || !m.away_team?.trim() || !m.match_date
+    );
+    if (invalid) {
+      return NextResponse.json(
+        { error: "Each match needs home_team, away_team and match_date" },
+        { status: 400 }
+      );
+    }
+    // Strip empty odds so bai's odds-anchored path is only fed real prices.
+    const payload = matches.map((m) => {
+      const odds =
+        m.odds && (m.odds.home || m.odds.draw || m.odds.away)
+          ? { home: m.odds.home || null, draw: m.odds.draw || null, away: m.odds.away || null }
+          : undefined;
+      return {
+        home_team: m.home_team.trim(),
+        away_team: m.away_team.trim(),
+        league: m.league?.trim() || "",
+        match_date: m.match_date,
+        ...(odds ? { odds } : {}),
+      };
+    });
+    try {
+      const res = await baiFetch("/api/run/targeted", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      return NextResponse.json({ run: data });
+    } catch (e) {
+      return NextResponse.json(
+        { error: e instanceof Error ? e.message : "Failed to start targeted run" },
+        { status: 502 }
+      );
+    }
   }
 
   // Trigger the bai pipeline
