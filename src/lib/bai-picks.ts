@@ -67,6 +67,8 @@ export function selectionLabel(
       return `${awayTeam} to Win`;
     case "DOUBLE_CHANCE_1X":
       return `${homeTeam} or Draw (1X)`;
+    case "DOUBLE_CHANCE_2X":
+      return `${awayTeam} or Draw (X2)`;
     case "OVER_2_5":
       return "Over 2.5 Goals";
     case "OVER_1_5":
